@@ -1,0 +1,69 @@
+{
+  "name": "ALMACEN-CACHITAMBO",
+  "version": "0.1.0",
+  "description": "Aplicacion de Registro",
+  "author": "malfito12",
+  "main": "public/electron.js",
+  "build": {
+    "appId": "display.nemu"
+  },
+  "homepage": "./",
+  "dependencies": {
+    "@material-ui/core": "^4.12.1",
+    "@material-ui/icons": "^4.11.2",
+    "@material-ui/lab": "^4.0.0-alpha.61",
+    "@testing-library/jest-dom": "^5.11.4",
+    "@testing-library/react": "^11.1.0",
+    "@testing-library/user-event": "^12.1.10",
+    "cross-env": "^7.0.3",
+    "electron-is-dev": "^2.0.0",
+    "jspdf": "^2.3.1",
+    "jspdf-autotable": "^3.5.15",
+    "lowdb": "^1.0.0",
+    "material-table": "1.69.2",
+    "moment": "^2.29.1",
+    "mongoose": "^5.13.2",
+    "react": "^17.0.2",
+    "react-dom": "^17.0.2",
+    "react-file-base64": "^1.0.3",
+    "react-router-dom": "^5.2.0",
+    "react-scripts": "4.0.3",
+    "react-to-print": "^2.12.6",
+    "round-to": "^6.0.0",
+    "uuid": "^8.3.2",
+    "web-vitals": "^1.0.1"
+  },
+  "scripts": {
+    "react-start": "react-scripts start",
+    "react-build": "react-scripts build",
+    "react-test": "react-scripts test",
+    "react-eject": "react-scripts eject",
+    "electron-build": "electron-builder",
+    "build": "npm run react-build && npm run electron-build",
+    "start": "concurrently \"cross-env BROWSER=none npm run react-start\" \"wait-on http://localhost:3000 && electron .\""
+  },
+  "eslintConfig": {
+    "extends": [
+      "react-app",
+      "react-app/jest"
+    ]
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  },
+  "devDependencies": {
+    "concurrently": "^6.2.0",
+    "electron": "^13.1.6",
+    "electron-builder": "^22.11.7",
+    "wait-on": "^6.0.0"
+  }
+}
