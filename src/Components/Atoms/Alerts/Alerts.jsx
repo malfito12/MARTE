@@ -115,7 +115,7 @@ export const ErrorAlertsEditSubMaterial = (props) => {
     return (
         <Snackbar open={props.open} autoHideDuration={3000} onClose={props.setOpen}>
             <Alert variant="filled" severity="error" onClose={props.setOpen}>
-                Error, No se pudo modificar 
+                Error, No se pudo modificar
             </Alert>
         </Snackbar>
     )
@@ -134,7 +134,17 @@ export const ErrorAlertCierreCaja = (props) => {
     return (
         <Snackbar open={props.open} autoHideDuration={3000} onClose={props.setOpen}>
             <Alert variant="filled" severity="error" onClose={props.setOpen}>
-                Error, No se pudo realizar la accion. 
+                Error, No se pudo realizar la accion.
+            </Alert>
+        </Snackbar>
+    )
+}
+//---------------------------------------------------------
+export const AlertOpcionBusqueda = (props) => {
+    return (
+        <Snackbar open={props.open} autoHideDuration={3000} onClose={props.setOpen}>
+            <Alert variant="filled" severity="warning" onClose={props.setOpen}>
+                Asegurese de elegir una Opcion para comenzar la busqueda.
             </Alert>
         </Snackbar>
     )

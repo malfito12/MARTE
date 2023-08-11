@@ -6,6 +6,7 @@ import TableChartIcon from '@material-ui/icons/TableChart';
 import { useHistory } from 'react-router-dom'
 import FilterNoneIcon from '@material-ui/icons/FilterNone';
 import CreditCardIcon from '@material-ui/icons/CreditCard';
+import { AlertOpcionBusqueda } from '../../Atoms/Alerts/Alerts';
 
 
 const ipcRenderer = window.require('electron').ipcRenderer
@@ -18,15 +19,21 @@ const Busqueda = () => {
     const [data, setData] = useState([])
     const [value, setValue] = useState(null)
     const [progress, setProgress] = useState('none')
+    const [opcion,setOpcion]=useState(false)
     const [exist, setExist] = useState('none')
 
 
     //------------------------------------
+    const openCloseOpcion=()=>{
+        setOpcion(!opcion)
+    }
+    //------------------------------------
     const texto = useRef()
     const buscar = async (e) => {
         e.preventDefault()
-        setProgress('block')
-        await ipcRenderer.invoke('buscador-mat-submat', { typeTable: value, text: texto.current.value })
+        if(value==='nameMaterials'|| value==='nameSubMaterials'){
+            setProgress('block')
+            await ipcRenderer.invoke('buscador-mat-submat', { typeTable: value, text: texto.current.value })
             .then(resp => {
                 if (JSON.parse(resp.length) === 0) {
                     setExist('block')
@@ -35,6 +42,9 @@ const Busqueda = () => {
                 setData(JSON.parse(resp))
             })
             .catch(err => console.log(err))
+        }else{
+            openCloseOpcion()
+        }
     }
     // console.log(data)
     //--------------------IR A SUB-MATERIALES--------------------------
@@ -114,30 +124,33 @@ const Busqueda = () => {
             <Typography style={{ marginTop: 30, color: 'white', marginBottom: 25 }} align='center'>BUSQUEDA DE MATERIALES</Typography>
             <Container >
                 <Container maxWidth='md'>
-                    <Grid container direction='row' justifyContent='space-around' alignItems='center' style={{marginBottom:15}}>
-                        <TextField
-                            style={{ background: 'white', borderRadius: 5, width: '50%' }}
-                            inputRef={texto}
-                            // label='Introdusca'
-                            variant='outlined'
-                            size='small'
-                        />
-                        <FormControl>
-                            <RadioGroup onChange={handleChange} style={{ flexDirection: 'row', color: 'white' }}>
-                                <FormControlLabel value='nameMaterials' control={<Radio color='primary' style={{ color: 'white' }} />} label='MATERIALES' />
-                                <FormControlLabel value='nameSubMaterials' control={<Radio color='primary' style={{ color: 'white' }} />} label='SUB-MATERIALES' />
-                            </RadioGroup>
-                        </FormControl>
-                        <Button
-                            onClick={buscar}
-                            variant='contained'
-                            style={{
-                                color: 'white',
-                                background: 'linear-gradient(45deg, #4caf50 30%, #8bc34a 90%)'
-                            }}
-                            endIcon={<SearchIcon />}
-                        >Buscar</Button>
-                    </Grid>
+                    <form onSubmit={buscar}>
+                        <Grid container direction='row' justifyContent='space-around' alignItems='center' style={{ marginBottom: 15 }}>
+                            <TextField
+                                style={{ background: 'white', borderRadius: 5, width: '50%' }}
+                                inputRef={texto}
+                                // label='Introdusca'
+                                variant='outlined'
+                                size='small'
+                            />
+                            <FormControl>
+                                <RadioGroup onChange={handleChange} style={{ flexDirection: 'row', color: 'white' }}>
+                                    <FormControlLabel value='nameMaterials' control={<Radio color='primary' style={{ color: 'white' }} />} label='MATERIALES' />
+                                    <FormControlLabel value='nameSubMaterials' control={<Radio color='primary' style={{ color: 'white' }} />} label='SUB-MATERIALES' />
+                                </RadioGroup>
+                            </FormControl>
+                            <Button
+                                type='submit'
+                                // onClick={buscar}
+                                variant='contained'
+                                style={{
+                                    color: 'white',
+                                    background: 'linear-gradient(45deg, #4caf50 30%, #8bc34a 90%)'
+                                }}
+                                endIcon={<SearchIcon />}
+                            >Buscar</Button>
+                        </Grid>
+                    </form>
                 </Container>
 
                 <Paper component={Box} p={1} >
@@ -234,6 +247,9 @@ const Busqueda = () => {
                     <CircularProgress size={60} style={{ color: 'white' }} />
                 </div>
             </Container>
+
+            {/* -------------------------------------------- */}
+            <AlertOpcionBusqueda open={opcion} setOpen={openCloseOpcion} />
         </>
     )
 }

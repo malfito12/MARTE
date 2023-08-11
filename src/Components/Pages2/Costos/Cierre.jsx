@@ -1,5 +1,7 @@
-import { Box, Button, Dialog, Grid, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TablePagination, TableRow, Typography, makeStyles } from '@material-ui/core'
-import React, { useEffect, useState } from 'react'
+import { Backdrop, Box, Button, CircularProgress, Dialog, Grid, MenuItem, Paper, Table, TableBody, TableCell, TableContainer, TableFooter, TableHead, TablePagination, TableRow, TextField, Typography, makeStyles } from '@material-ui/core'
+import React, { useEffect, useRef, useState } from 'react'
+import { Link } from 'react-router-dom'
+import { ErrorAlertCierreCaja, SuccessAlertCierreCaja } from '../../Atoms/Alerts/Alerts'
 
 const ipcRenderer = window.require('electron').ipcRenderer
 
@@ -22,32 +24,82 @@ const useStyles = makeStyles((theme) => ({
     },
     tableCellBody: {
         // fontSize: 'small',
-    }
+    },
+    backdrop: {
+        zIndex: theme.zIndex.drawer + 1,
+        color: '#fff'
+    },
 }))
 
 const Cierre = () => {
     const classes = useStyles()
     const [cierre, setCierre] = useState([])
     const [openModal, setOpenModal] = useState(false)
-    const [dataCierre, setDataCierre] = useState([])
-    const [rowsPerPage, setRowsPerPage] = useState(10);
-    const [page, setPage] = useState(0);
-    useEffect(() => {
-        getCierre()
-    }, [])
+    const [loading, setLoading] = useState(false)
+    const [modalCierre, setModalCierre] = useState(false)
+    const [postDataCierre, setPostDataCierre] = useState(false)
+    const [openAlertSuccess, setOpenAlertSuccess] = useState(false)
+    const [openAlertError, setOpenAlertError] = useState(false)
+    const [dataCierre, setDataCierre] = useState({ nameMaterial: '', contenido: [] })
+    // useEffect(() => {
+    //     getCierre()
+    // }, [])
 
-    const getCierre = async () => {
-        try {
-            await ipcRenderer.invoke('get-cierre-mes')
-                .then(resp => {
-                    setCierre(JSON.parse(resp))
-                })
-                .catch(err => {
-                    console.log(err)
-                })
-        } catch (error) {
-            console.log(error)
+    const meses = [
+        { id: 1, name: 'ENERO' },
+        { id: 2, name: 'FEBRERO' },
+        { id: 3, name: 'MARZO' },
+        { id: 4, name: 'ABRIL' },
+        { id: 5, name: 'MAYO' },
+        { id: 6, name: 'JUNIO' },
+        { id: 7, name: 'JULIO' },
+        { id: 8, name: 'AGOSTO' },
+        { id: 9, name: 'SEPTIEMBRE' },
+        { id: 10, name: 'OCTUBRE' },
+        { id: 11, name: 'NOVIEMBRE' },
+        { id: 12, name: 'DICIEMBRE' },
+    ]
+
+    const anio = useRef()
+    const mes = useRef()
+    const openModalCierre = (e) => {
+        setPostDataCierre(e)
+        setModalCierre(true)
+    }
+    const closeModalCierre = () => {
+        setModalCierre(false)
+    }
+    //----------------------------------------------------
+    const openCloseAlertSuccess = () => {
+        setOpenAlertSuccess(!openAlertSuccess)
+    }
+    const openCloseAlertError = () => {
+        setOpenAlertError(!openAlertError)
+    }
+    //----------------------------------------------------
+    const postCierre = async (e) => {
+        e.preventDefault()
+        const data = {
+            mes: mes.current.value,
+            anio: anio.current.value,
+            totalEntrada: sumE,
+            totalSalida: sumS,
+            total: sumTotal,
+            contenido: postDataCierre
         }
+        // console.log(data)
+        await ipcRenderer.invoke('post-cierre-mes', data)
+            .then(resp => {
+                // console.log(resp)
+                openCloseAlertSuccess()
+                // alert(resp.message)
+                closeModalCierre()
+            })
+            .catch(err => {
+                openCloseAlertError()
+                console.log(err)
+            })
+
     }
     const openModalData = (e) => {
         console.log(e)
@@ -58,18 +110,147 @@ const Cierre = () => {
         setOpenModal(false)
     }
     //-----------------------------------------------------------------
-    const handleChangePage = (event, newPage) => {
+    var sumTotal = 0
+    var sumE = 0
+    var sumS = 0
+    for (var i = 0; i < cierre.length; i++) {
+        sumTotal = sumTotal + parseFloat(cierre[i].total)
+        parseFloat(cierre[i].total) >= 0 ? sumE = sumE + parseFloat(cierre[i].total) : sumS = sumS + parseFloat(cierre[i].total)
+    }
+    //-----------------------------------------------------------------
+    const fechaini = useRef()
+    const fechafin = useRef()
 
-        setPage(newPage);
-    };
-    const handleChangeRowsPerPage = (event) => {
-        setRowsPerPage(event.target.value);
-        setPage(0);
-    };
+    //---------------LOADING------------
+    const openLoading = () => {
+        setLoading(true)
+    }
+    const closeLoading = () => {
+        setLoading(false)
+    }
+    //----------------------------------------------
+    const buscar = async (e) => {
+        e.preventDefault()
+        const data = {
+            fechaIni: fechaini.current.value,
+            fechaFin: fechafin.current.value,
+        }
+        openLoading()
+        await ipcRenderer.invoke('search-cierre-mes', data)
+            .then(resp => {
+                setCierre(JSON.parse(resp))
+                closeLoading()
+            })
+            .catch(err => console.log(err))
+    }
+    // console.log(cierre)
     return (
         <>
-            <Typography align='center' variant='h6' style={{ paddingTop: '2rem', marginBottom: '1rem', color: 'white' }}>CIERRE DE MES</Typography>
-            <Paper component={Box} p={2}>
+            <div style={{ marginTop: 50 }}>
+                <Button
+                    size='small'
+                    style={{
+                        color: 'white',
+                        background: 'linear-gradient(45deg, #4caf50 30%, #8bc34a 90%)',
+                        marginRight: '1rem',
+                    }}
+                    variant='contained'
+                    component={Link}
+                    to='/busqueda-cierre'
+                >Lista mes</Button>
+                <Button
+                    size='small'
+                    style={{
+                        color: 'white',
+                        background: 'linear-gradient(45deg, #d84315 30%, #ff7043 90%)',
+                    }}
+                    variant='contained'
+                    component={Link}
+                    to='/cierremes'
+                >Cierre de mes</Button>
+            </div>
+            <Typography align='center' variant='h6' style={{ paddingTop: 10, marginBottom: '1rem', color: 'white' }}>CIERRE DE MES</Typography>
+            <Grid container spacing={2}>
+                <Grid item xs={12} sm={3}>
+                    <Paper component={Box} p={2}>
+                        <form onSubmit={buscar}>
+                            <Typography align='center'>Buscar Fechas</Typography>
+                            <TextField
+                                label='Fecha de Inicio'
+                                variant='outlined'
+                                fullWidth
+                                size='small'
+                                type='date'
+                                InputLabelProps={{ shrink: true }}
+                                style={{ marginBottom: 10 }}
+                                inputRef={fechaini}
+                                required
+                            />
+                            <TextField
+                                label='Fecha Fin'
+                                variant='outlined'
+                                fullWidth
+                                size='small'
+                                type='date'
+                                InputLabelProps={{ shrink: true }}
+                                style={{ marginBottom: 10 }}
+                                inputRef={fechafin}
+                                required
+                            />
+                            <Button type='submit' variant='outlined' style={{ background: 'green', color: 'white' }} size='small' fullWidth>Buscar</Button>
+                        </form>
+                    </Paper>
+                </Grid>
+                <Grid item xs={12} sm={9}>
+                    <Paper component={Box} p={1}>
+                        <TableContainer style={{ maxHeight: 550 }}>
+                            <Table stickyHeader>
+                                <TableHead>
+                                    <TableRow>
+                                        <TableCell>N°</TableCell>
+                                        <TableCell>Code</TableCell>
+                                        <TableCell>Nombre de Producto</TableCell>
+                                        <TableCell>Total</TableCell>
+                                        <TableCell></TableCell>
+                                    </TableRow>
+                                </TableHead>
+                                <TableBody>
+                                    {cierre.length > 0 ? (
+                                        cierre.map((e, index) => (
+                                            <TableRow key={index}>
+                                                <TableCell>{index + 1}</TableCell>
+                                                <TableCell>{e.codeMaterial}</TableCell>
+                                                <TableCell>{e.nameMaterial}</TableCell>
+                                                <TableCell>{e.total}</TableCell>
+                                                <TableCell>
+                                                    <Button variant='contained' size='small' style={{ background: 'green', color: 'white' }} onClick={() => openModalData(e)}>informacion</Button>
+                                                </TableCell>
+                                            </TableRow>
+                                        ))
+                                    ) : null}
+                                </TableBody>
+                                <TableFooter>
+                                    {cierre.length > 0 ? (
+                                        <>
+                                            <TableRow>
+                                                <TableCell>Total</TableCell>
+                                                <TableCell colSpan={2} align='right'>{sumTotal}</TableCell>
+                                            </TableRow>
+                                            <TableRow>
+                                                <TableCell colSpan={4} align='right'>
+                                                    <Button onClick={() => openModalCierre(cierre)} variant='outlined' size='small' style={{ background: 'green', color: 'white' }}>Guardar informacion de mes</Button>
+                                                </TableCell>
+
+                                            </TableRow>
+                                        </>
+                                    ) : null}
+                                </TableFooter>
+                            </Table>
+                        </TableContainer>
+                    </Paper>
+                </Grid>
+            </Grid>
+            {/* <Paper component={Box} p={2}>
                 <TableContainer style={{ maxHeight: 430 }}>
                     <Table stickyHeader size='small'>
                         <TableHead>
@@ -111,7 +292,7 @@ const Cierre = () => {
                     onRowsPerPageChange={handleChangeRowsPerPage}
                 // onChangeRowsPerPage={handleChangeRowsPerPage}
                 />
-            </Paper>
+            </Paper> */}
             {/*--------------------------------------------------------------------*/}
             <Dialog
                 open={openModal}
@@ -119,57 +300,46 @@ const Cierre = () => {
                 maxWidth='lg'
             >
                 <Paper component={Box} p={2}>
-                    <Typography align='center'>Datos de mes</Typography>
+                    <Typography align='center'>{dataCierre.nameMaterial}</Typography>
                     <TableContainer style={{ maxHeight: 550 }}>
                         <Paper component={Box} p={0.3}>
                             <TableContainer style={{ maxHeight: 430 }}>
-                                <Table id='id-table' stickyHeader size='small' style={{ minWidth: 1000 }} >
+                                <Table id='id-table' size='small' style={{ minWidth: 1000 }} >
                                     <TableHead>
                                         <TableRow>
-                                            <TableCell style={{ color: 'white', backgroundColor: "black", width: '11%' }}>Fecha</TableCell>
-                                            <TableCell style={{ color: 'white', backgroundColor: "black", width: '3%' }}>Tipo de Registro</TableCell>
-                                            <TableCell style={{ color: 'white', backgroundColor: "black", width: '3%' }}>Cod. Movimiento</TableCell>
-                                            <TableCell style={{ color: 'white', backgroundColor: "black", width: '37%' }}>Descripcion</TableCell>
-                                            <TableCell style={{ color: 'white', backgroundColor: "black", width: '5%' }}>Cantidad</TableCell>
-                                            <TableCell style={{ color: 'white', backgroundColor: "black", width: '5%' }}>Precio Unitario</TableCell>
-                                            <TableCell style={{ color: 'white', backgroundColor: "black", width: '5%' }}>Precio</TableCell>
-                                            <TableCell style={{ color: 'white', backgroundColor: "black", width: '10%' }}>Unidad de Medida</TableCell>
-                                            <TableCell style={{ color: 'white', backgroundColor: "black", width: '10%' }}>Kardex</TableCell>
-                                            {/* <TableCell id='desaparecer' style={{ color: 'white', backgroundColor: "black", width: '10%' }}></TableCell> */}
+                                            <TableCell rowSpan={2} style={{ color: 'white', backgroundColor: "black" }}>Code</TableCell>
+                                            <TableCell rowSpan={2} style={{ color: 'white', backgroundColor: "black" }}>Nombre</TableCell>
+                                            <TableCell colSpan={3} align='center'>INGRESOS DEL MES</TableCell>
+                                            <TableCell colSpan={3} align='center'>SALIDAS DEL MES</TableCell>
+                                            <TableCell colSpan={3} align='center'>SALDOS DEL MES</TableCell>
+                                        </TableRow>
+                                        <TableRow>
+                                            <TableCell style={{ background: 'red' }} align='center'>Unidades</TableCell>
+                                            <TableCell style={{ background: 'red' }} align='center'>Precio Unitario</TableCell>
+                                            <TableCell style={{ background: 'red' }} align='center'>Total</TableCell>
+                                            <TableCell style={{ background: 'blue' }} align='center'>Unidades</TableCell>
+                                            <TableCell style={{ background: 'blue' }} align='center'>Precio Unitario</TableCell>
+                                            <TableCell style={{ background: 'blue' }} align='center'>Total</TableCell>
+                                            <TableCell style={{ color: 'white', backgroundColor: "black", }} align='center'>Unidades</TableCell>
+                                            <TableCell style={{ color: 'white', backgroundColor: "black", }} align='center'>Precio Unitario</TableCell>
+                                            <TableCell style={{ color: 'white', backgroundColor: "black", }} align='center'>Total</TableCell>
                                         </TableRow>
                                     </TableHead>
                                     <TableBody>
-                                        {dataCierre.length > 0 ? (
-                                            dataCierre.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((a, index) => (
-                                                // almacen.filter(buscarMaterialAlmacen(buscador)).map((a, index) => (
+                                        {dataCierre ? (
+                                            dataCierre.contenido.map((a, index) => (
                                                 <TableRow key={index} className={classes.tableRow}>
-                                                    <TableCell className={classes.tableCellBody}>{a.registerDate}</TableCell>
-                                                    <TableCell className={classes.tableCellBody}>{a.typeRegister}</TableCell>
-                                                    {a.typeRegister == 'salida' ? (
-                                                        <TableCell className={{ ...classes.tableCellspcing, ...classes.tableCellBody }}>{a.numVale}</TableCell>
-                                                    ) : (
-                                                        <TableCell className={{ ...classes.tableCellspcing, ...classes.tableCellBody }}>{a.numeroIngreso}</TableCell>
-                                                    )}
+                                                    <TableCell className={classes.tableCellBody}>{a.codeSubMaterial}</TableCell>
                                                     <TableCell className={classes.tableCellBody}>{a.nameSubMaterial}</TableCell>
-                                                    <TableCell align='right' className={classes.tableCellBody}>{a.cantidad}</TableCell>
-                                                    <TableCell align='right' className={classes.tableCellBody}>{a.precioUnitario}</TableCell>
-                                                    <TableCell align='right' className={classes.tableCellBody}>{a.precio}</TableCell>
-                                                    <TableCell className={classes.tableCellBody}>{a.unidadMedida}</TableCell>
-                                                    <TableCell className={classes.tableCellBody}>{a.codSubMaterial}</TableCell>
-                                                    {/* <TableCell style={{ padding: 0, margin: 0 }}>
-                                                        <Grid container direction='row' justifyContent='space-evenly'>
-                                                            <Tooltip title='edit'>
-                                                                <IconButton size='small' style={{ color: 'green' }} onClick={() => openModalEdit(a)}>
-                                                                    <EditIcon />
-                                                                </IconButton>
-                                                            </Tooltip>
-                                                            <Tooltip title='delete'>
-                                                                <IconButton size='small' style={{ color: 'red' }} onClick={() => openModalDelete(a)}>
-                                                                    <DeleteIcon />
-                                                                </IconButton>
-                                                            </Tooltip>
-                                                        </Grid>
-                                                    </TableCell> */}
+                                                    <TableCell className={classes.tableCellBody}>{a.cantidadE}</TableCell>
+                                                    <TableCell className={classes.tableCellBody}>{a.precioUniE}</TableCell>
+                                                    <TableCell className={classes.tableCellBody}>{a.sumE}</TableCell>
+                                                    <TableCell className={classes.tableCellBody}>{a.cantidadS}</TableCell>
+                                                    <TableCell className={classes.tableCellBody}>{a.precioUniS}</TableCell>
+                                                    <TableCell className={classes.tableCellBody}>{a.sumS}</TableCell>
+                                                    <TableCell className={classes.tableCellBody}>{a.cantidad}</TableCell>
+                                                    <TableCell className={classes.tableCellBody}>{a.precioUnit}</TableCell>
+                                                    <TableCell className={classes.tableCellBody}>{a.precio}</TableCell>
                                                 </TableRow>
                                             ))
                                         ) : (null
@@ -184,23 +354,72 @@ const Cierre = () => {
                                             // </TableRow>
                                         )}
                                     </TableBody>
+                                    <TableFooter>
+                                        <TableRow>
+                                            <TableCell></TableCell>
+                                            <TableCell>Total Entradas:</TableCell>
+                                            <TableCell colSpan={2} align='right'>{dataCierre.totalE}</TableCell>
+                                            <TableCell>Total Salidas:</TableCell>
+                                            <TableCell colSpan={2} align='right'>{dataCierre.totalS}</TableCell>
+                                            <TableCell>Total:</TableCell>
+                                            <TableCell colSpan={2} align='right'>{dataCierre.total}</TableCell>
+                                        </TableRow>
+                                    </TableFooter>
                                 </Table>
                             </TableContainer>
-                            <TablePagination
-                                rowsPerPageOptions={[10, 50, 100, 200, 500, 1000]}
-                                component="div"
-                                count={dataCierre.length}
-                                rowsPerPage={rowsPerPage}
-                                page={page}
-                                onPageChange={handleChangePage}
-                                // onChangePage={handleChangePage}
-                                onRowsPerPageChange={handleChangeRowsPerPage}
-                            // onChangeRowsPerPage={handleChangeRowsPerPage}
-                            />
                         </Paper>
                     </TableContainer>
                 </Paper>
             </Dialog>
+            <Backdrop className={classes.backdrop} open={loading} onClick={closeLoading}>
+                <CircularProgress />
+            </Backdrop>
+            <Dialog
+                open={modalCierre}
+                onClose={closeModalCierre}
+                maxWidth='sm'
+            >
+                <Paper component={Box} p={2}>
+                    <Typography align='center'>CIERRE DE MES</Typography>
+                    <div style={{ margin: 20 }}>
+                        <Typography variant='h6'>Total Entradas: {sumE} Bs.</Typography>
+                        <Typography variant='h6'>Total Salidas: {sumS} Bs.</Typography>
+                        <Typography variant='h6'>Total: {sumTotal} Bs.</Typography>
+                    </div>
+                    <form onSubmit={postCierre}>
+                        <TextField
+                            label='Mes de Registro'
+                            variant='outlined'
+                            size='small'
+                            fullWidth
+                            defaultValue=''
+                            style={{ padding: 2, marginBottom: 10 }}
+                            inputRef={mes}
+                            required
+                            select
+                        >
+                            {meses && meses.map(e => (
+                                <MenuItem key={e.id} value={e.name}>{e.name}</MenuItem>
+                            ))}
+                        </TextField>
+                        <TextField
+                            label='Año de Registro'
+                            variant='outlined'
+                            size='small'
+                            fullWidth
+                            type='number'
+                            style={{ padding: 2, marginBottom: 10 }}
+                            inputRef={anio}
+                            required
+                        />
+                        <Button type='submit' variant='outlined' style={{ background: 'green', color: 'white' }} size='small' fullWidth>Guardar</Button>
+                    </form>
+                </Paper>
+            </Dialog>
+
+            {/* ----------------------------------------------------------- */}
+            <SuccessAlertCierreCaja open={openAlertSuccess} setOpen={openCloseAlertSuccess} />
+            <ErrorAlertCierreCaja open={openAlertSuccess} setOpen={openCloseAlertSuccess} />
         </>
     )
 }

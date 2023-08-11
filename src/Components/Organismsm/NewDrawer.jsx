@@ -23,6 +23,7 @@ import StoreIcon from '@material-ui/icons/Store';
 import LocalPharmacyIcon from '@material-ui/icons/LocalPharmacy';
 import HttpsIcon from '@material-ui/icons/Https';
 import Cierre from '../Pages2/Costos/Cierre';
+import BusquedaCierre from '../Pages2/Costos/BusquedaCierre';
 
 const useStyles = makeStyles((theme) => ({
     drawerPaper: {
@@ -111,7 +112,7 @@ const NewDrawer = (props) => {
                         </ListItemIcon>
                         <ListItemText>Busqueda</ListItemText>
                     </ListItem>
-                    <ListItem button component={Link} to='/cierremes' style={{ color: 'yellowgreen' }}>
+                    <ListItem button component={Link} to='/busqueda-cierre' style={{ color: 'yellowgreen' }}>
                         <ListItemIcon>
                             <HttpsIcon style={{ color: 'white' }} />
                         </ListItemIcon>
@@ -133,6 +134,7 @@ const NewDrawer = (props) => {
                 <Route path='/hojaCostos' exact component={HojaCostos} />
                 <Route path='/busqueda' exact component={Busqueda} />
                 <Route path='/cierremes' exact component={Cierre} />
+                <Route path='/busqueda-cierre' exact component={BusquedaCierre} />
             </Main>
         </div>
     )

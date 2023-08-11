@@ -5,7 +5,11 @@
   "author": "malfito12",
   "main": "public/electron.js",
   "build": {
-    "appId": "display.nemu"
+    "appId": "display.nemu",
+    "nsis":{
+      "allowToChangeInstallationDirectory":true,
+      "oneClick":false
+    }
   },
   "homepage": "./",
   "dependencies": {

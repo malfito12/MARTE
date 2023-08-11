@@ -105,10 +105,11 @@ const KARDEX = mongoose.model('kardexs', KARDEXSCHEMA)
 const CIERREMESSCHEMA = {
   mes: String,
   anio: String,
+  contenido: Array,
   totalEntrada: String,
   totalSalida: String,
   total: String,
-  data: Array,
+  registerDate: Date
 
 }
 const CIERREMES = mongoose.model('cierremeses', CIERREMESSCHEMA)
@@ -154,6 +155,7 @@ function createWindow() {
       // preload: path.join(__dirname, 'preload.js')
     }
   })
+  win.removeMenu()
   win.maximize()
   win.show()
 
@@ -189,7 +191,7 @@ app.on('window-all-closed', function () {
 //-------------------------------GET CIERRE MES------------------------------------------
 ipcMain.handle('get-cierre-mes', async (e, args) => {
   try {
-    const result=await CIERREMES.find({})
+    const result = await CIERREMES.find({})
     return JSON.stringify(result)
   } catch (error) {
     console.log(error)
@@ -197,12 +199,19 @@ ipcMain.handle('get-cierre-mes', async (e, args) => {
 })
 //-------------------------------POST CIERRE MES------------------------------------------
 ipcMain.handle('post-cierre-mes', async (e, args) => {
-  const result = args
+  var result = args
+  const deleteData = args.contenido[0].delete
   // console.log(result)
   try {
-    for (var i = 0; i < result.data.length; i++) {
-      await KARDEX.deleteOne({ _id: result.data[i]._id })
+    const exist = await CIERREMES.find({ mes: result.mes, anio: result.anio })
+    if (exist.length > 0) {
+      return JSON.stringify({ message: 'Error, El mes ya tiene registros' })
     }
+    for (var i = 0; i < deleteData.length; i++) {
+      await KARDEX.deleteOne({ _id: deleteData[i]._id })
+      console.log('entra')
+    }
+    result["registerDate"] = new Date()
     const prueba = new CIERREMES(result)
     await prueba.save()
     return JSON.stringify({ message: 'Cierre de Mes Registrado' })
@@ -212,16 +221,111 @@ ipcMain.handle('post-cierre-mes', async (e, args) => {
   }
 })
 //-------------------------------GET ULTIMO MES ------------------------------------------
-ipcMain.handle('get-ultimo-mes',async(e,args)=>{
+ipcMain.handle('get-ultimo-mes', async (e, args) => {
   try {
-    const result=await CIERREMES.find({}).sort({_id:-1}).limit(1)
+    const result = await CIERREMES.find({}).sort({ _id: -1 }).limit(1)
     return JSON.stringify(result)
   } catch (error) {
     console.log(error)
   }
 })
 
-//----------------SALIDA DE PRODUCTOS---------------------------------------------
+//----------------NUEVO CIERRE DE MES---------------------------------------------
+ipcMain.handle('search-cierre-mes', async (e, args) => {
+  console.log(args)
+  const fechaInicio = args.fechaIni
+  const fechaFin = args.fechaFin
+  const changeIni = fechaInicio.split('-')
+  var newFechaIni = changeIni[2] + '-' + changeIni[1] + '-' + changeIni[0]
+  const changeFin = fechaFin.split('-')
+  var newFechaFin = changeFin[2] + '-' + changeFin[1] + '-' + changeFin[0]
+
+  try {
+    const material = await MATERIAL.find({}).sort({ codMaterial: 1 })
+    const data = []
+    const deleteData = []
+    for (var i = 0; i < material.length; i++) {
+      var total = 0;
+      var totalE = 0;
+      var totalS = 0
+      const array = []
+      const subMatetial = await SUBMATERIAL.find({ codMaterial: material[i].codMaterial }).sort({ registerDate: 1 })
+      for (var j = 0; j < subMatetial.length; j++) {
+        //entradas
+        var sumE = 0
+        var cantidadE = 0
+        //salidas
+        var sumS = 0;
+        var cantidadS = 0
+        //total
+        var precioUni = 0
+        var sumTotal = 0;
+        var cantidadTotal = 0;
+        console.log(subMatetial[j].nameSubMaterial)
+        while (newFechaIni <= newFechaFin) {
+          const datos = await KARDEX.find({ $and: [{ codSubMaterial: subMatetial[j].codSubMaterial }, { registerDate: newFechaIni }] }).sort({ _id: -1 })
+          var changeFecha = newFechaIni.split('-')
+          var newFecha = parseInt(changeFecha[0]) + 1
+          if (datos.length > 0) {
+            precioUni = await KARDEX.find({ $and: [{ codSubMaterial: subMatetial[j].codSubMaterial }, { registerDate: newFechaIni }] }).sort({ _id: -1 }).limit(1)
+            // console.log(precioUni)
+            for (var k = 0; k < datos.length; k++) {
+              if (datos[k].typeRegister === 'entrada') {
+                sumTotal = sumTotal + parseFloat(datos[k].precioE)
+                sumE = sumE + parseFloat(datos[k].precioE)
+                cantidadTotal = cantidadTotal + parseFloat(datos[k].cantidadE)
+                cantidadE = cantidadE + parseFloat(datos[k].cantidadE)
+              } else {
+                sumTotal = sumTotal - parseFloat(datos[k].precioS)
+                sumS = sumS + parseFloat(datos[k].precioS)
+                cantidadTotal = cantidadTotal - parseFloat(datos[k].cantidadS)
+                cantidadS = cantidadS + parseFloat(datos[k].cantidadS)
+              }
+              deleteData.push(datos[k])
+              console.log(deleteData.length)
+            }
+          }
+          if (newFecha >= 10) {
+            newFechaIni = newFecha.toString() + '-' + changeFecha[1] + '-' + changeFecha[2]
+          } else {
+            newFechaIni = '0' + newFecha.toString() + '-' + changeFecha[1] + '-' + changeFecha[2]
+          }
+        }
+
+        array.push({
+          codeSubMaterial: subMatetial[j].codSubMaterial,
+          nameSubMaterial: subMatetial[j].nameSubMaterial,
+          cantidadE: cantidadE,
+          sumE: sumE,
+          precioUniE: cantidadE === 0 ? 0 : precioUni[0].precioUnitario,
+          cantidadS: cantidadS,
+          sumS: sumS,
+          precioUniS: cantidadS === 0 ? 0 : precioUni[0].precioUnitario,
+          cantidad: cantidadTotal,
+          precio: sumTotal.toFixed(2),
+          precioUnit: precioUni.length > 0 ? precioUni[0].precioUnitario : 0
+        })
+        total = total + sumTotal
+        totalE = totalE + sumE
+        totalS = totalS + sumS
+        newFechaIni = changeIni[2] + '-' + changeIni[1] + '-' + changeIni[0]
+      }
+      data.push({
+        codeMaterial: material[i].codMaterial,
+        nameMaterial: material[i].nameMaterial,
+        contenido: array,
+        totalE: totalE,
+        totalS: totalS,
+        total: total.toFixed(2),
+        delete: deleteData,
+      })
+
+    }
+    return JSON.stringify(data)
+  } catch (error) {
+    console.log(error)
+  }
+})
 
 //--------------------------REGISTRO INGRESO DE MATERIALES AL ALMACEN------------------------------------------
 
@@ -1233,7 +1337,7 @@ ipcMain.handle("get-saldoTotalMaterial", async (e, args) => {
         sum = sum + parseFloat(ultimo[0].precioTotal)
       }
     }
-    
+
     var otro = sum;
     sum = new Intl.NumberFormat('es-BO').format(sum)
     if (sum <= 0) {
@@ -1309,6 +1413,15 @@ ipcMain.handle('buscador-mat-submat', async (e, args) => {
             nameSubMaterial: result[i].nameSubMaterial,
             unidadMedida: result[i].unidadMedida,
             cantidadTotal: ultimo[0].cantidadTotal
+          })
+        } else {
+          array.push({
+            codMaterial: result[i].codMaterial,
+            codSubMaterial: result[i].codSubMaterial,
+            nameMaterial: result[i].nameMaterial,
+            nameSubMaterial: result[i].nameSubMaterial,
+            unidadMedida: result[i].unidadMedida,
+            cantidadTotal: 0
           })
         }
         // console.log(ultimo[0])
