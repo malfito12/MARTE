@@ -3,6 +3,7 @@ import React from 'react'
 import { useEffect } from 'react'
 import { useState } from 'react'
 import BookmarkIcon from '@material-ui/icons/Bookmark';
+import { ErrorAlertsMateriales, SuccessAlertsMateriales } from '../../Atoms/Alerts/Alerts';
 
 
 const ipcRenderer = window.require('electron').ipcRenderer
@@ -17,6 +18,8 @@ const RegisterSubMaterial = (props) => {
     const [image, setImage] = useState(null)
     const [preview, setPreview] = useState(null)
     const [openRegister, setOpenRegister] = useState(false)
+    const [openAlertSuccess, setOpenAlertSuccess] = useState(false)
+    const [openAlertError, setOpenAlertError] = useState(false)
     const [unidadMedida, setUnidadMedida] = useState([])
     const [changeData, setChangeData] = useState({
         nameSubMaterial: '',
@@ -48,15 +51,17 @@ const RegisterSubMaterial = (props) => {
             image: preview
         }
         const result = await ipcRenderer.invoke('post-subMaterial', data)
-        .then(resp=>{
-            console.log(resp)
-            // console.log(JSON.parse(result))
-            closeModalRegister()
-            props.uno()
-        })
-        .catch(err=>{
-            console.log(err)
-        })
+            .then(resp => {
+                console.log(resp)
+                // console.log(JSON.parse(result))
+                openCloseAlertSuccess()
+                closeModalRegister()
+                props.uno()
+            })
+            .catch(err => {
+                openCloseAlertError()
+                console.log(err)
+            })
         // setChangeData('')
         // console.log(data)
 
@@ -101,12 +106,21 @@ const RegisterSubMaterial = (props) => {
             [e.target.name]: e.target.value
         })
     }
+    //----------------------------------------------------
+    const openCloseAlertSuccess = () => {
+        setOpenAlertSuccess(!openAlertSuccess)
+    }
+    const openCloseAlertError = () => {
+        setOpenAlertError(!openAlertError)
+    }
 
     // console.log(preview)
     // console.log(changeData)
     return (
         <>
-            <Button style={{ background: 'linear-gradient(45deg, #4caf50 30%, #8bc34a 90%)', color: 'white' }} endIcon={<BookmarkIcon />} variant='contained'  onClick={openModalRegister}>registrar sub-material</Button>
+            <SuccessAlertsMateriales open={openAlertSuccess} setOpen={openCloseAlertSuccess} />
+            <ErrorAlertsMateriales open={openAlertError} setOpen={openCloseAlertError} />
+            <Button style={{ background: 'linear-gradient(45deg, #4caf50 30%, #8bc34a 90%)', color: 'white' }} endIcon={<BookmarkIcon />} variant='contained' onClick={openModalRegister}>registrar sub-material</Button>
             <Dialog
                 open={openRegister}
                 onClose={closeModalRegister}

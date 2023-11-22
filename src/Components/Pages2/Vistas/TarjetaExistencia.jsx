@@ -33,8 +33,9 @@ const TarjetaExistencia = (props) => {
     const location=useLocation()
     const classes = useStyles()
     // console.log(props)
-    var aux = props.location.pathname
-    aux = aux.split("/")
+    // var aux = props.location.pathname
+    var aux = props.location.data
+    // aux = aux.split("/")
     // console.log(aux)
     const [tarjeta, setTarjeta] = useState([])
     const [progress, setProgress] = useState('none')
@@ -48,7 +49,7 @@ const TarjetaExistencia = (props) => {
     const getTarjeta = async () => {
         setProgress('block')
         try {
-            const result = await ipcRenderer.invoke("get-tarjetaExistencia", aux[4])
+            await ipcRenderer.invoke("get-tarjetaExistencia", aux.codSubMaterial)
                 .then(resp => {
                     if (JSON.parse(resp.length) === 0) {
                         setExist('block')
@@ -86,19 +87,20 @@ const TarjetaExistencia = (props) => {
     }
     //---------------------------PDF GENERATE-------------------------
     const pdfGenerate = () => {
-        const doc = new jsPDF({ orientation: 'portrait', unit: 'in', format: [11, 7] })
+        // const doc = new jsPDF({ orientation: 'portrait', unit: 'in', format: [11, 7] })
+        const doc = new jsPDF({ orientation: 'portrait', unit: 'in', format: [11, 8] })
         var pageWidth = doc.internal.pageSize.width || doc.internal.pageSize.getWidth()
         var pageHeight = doc.internal.pageSize.height || doc.internal.pageSize.height()
 
-        doc.setFontSize(15)
+        doc.setFontSize(16)
         doc.setFont('Courier', 'Bold');
         doc.addImage(`${sello}`, 0.5, 0.3, 1.5, 0.7)
         doc.text(`Tarjeta de Existencia`, pageWidth / 2, 1, 'center')
-        doc.setFontSize(9)
-        doc.text(`Kadex N°:   ${aux[4]}`, 1, 1.35)
-        doc.text(`Unidad:   ${aux[7]}`, 4, 1.35)
-        doc.text(`Articulo:   ${location.data.nameSubMaterial}`, 1, 1.45)
-        doc.text(`Stock Minimo :   ${aux[6]}`, 1, 1.55)
+        doc.setFontSize(11)
+        doc.text(`Kadex N°:   ${aux.codSubMaterial}`, 1, 1.35)
+        doc.text(`Unidad:   ${aux.unidadMedida}`, 5, 1.35)
+        doc.text(`Articulo:   ${aux.nameSubMaterial}`, 1, 1.50)
+        doc.text(`Stock Minimo :   ${aux.saldoInicial}`, 1, 1.64)
         // doc.autoTable({ html: "#id-table", styles: { fontSize: 9 }, margin: { top: 55 } })
         doc.autoTable({
             headStyles: {
@@ -122,13 +124,13 @@ const TarjetaExistencia = (props) => {
                 { content: d.registerDate, styles: { halign: 'center' } },
                 { content: d.numVale ? d.numVale : ' ', styles: { halign: 'center' } },
                 { content: d.numeroIngreso ? d.numeroIngreso : '', styles: { halign: 'center' } },
-                { content: d.seccion ? d.seccion : ' ' },
-                { content: d.cantidadF ? d.cantidadF : ' ', styles: { halign: 'right' } },
+                { content: d.procedenciaDestino ? d.procedenciaDestino : ' ' },
+                { content: d.cantidadF ? d.cantidadF : ' ', styles: { halign: 'right',textColor:'green' } },
                 { content: d.cantidadS ? d.cantidadS : ' ', styles: { halign: 'right' } },
                 { content: d.saldoExistencia, styles: { halign: 'right' } },
             ])),
-            styles: { fontSize: 8, font: 'courier', fontStyle: 'bold' },
-            startY: 1.7,
+            styles: { fontSize: 10, font: 'courier', fontStyle: 'bold' },
+            startY: 1.8,
         })
         var pages = doc.internal.getNumberOfPages()
         for (var i = 1; i <= pages; i++) {
@@ -163,13 +165,13 @@ const TarjetaExistencia = (props) => {
                     <Typography variant='h5' align='center'>TARJETA DE EXISTENCIA</Typography>
                     <Grid container spacing={3} >
                         <Grid item xs={12} sm={6}>
-                            <Typography>Kardex N°: {aux[4]}</Typography>
-                            <Typography>Articulo: {location.data.nameSubMaterial}</Typography>
-                            <Typography>Stock Minino: {aux[6]} "saldo inicio"</Typography>
+                            <Typography>Kardex N°: {aux.codSubMaterial}</Typography>
+                            <Typography>Articulo: {aux.nameSubMaterial}</Typography>
+                            <Typography>Stock Minino: {aux.saldoInicial} "saldo inicio"</Typography>
 
                         </Grid>
                         <Grid item xs={12} sm={6}>
-                            <Typography>Unidad: {aux[7]}</Typography>
+                            <Typography>Unidad: {aux.unidadMedida}</Typography>
                         </Grid>
                     </Grid>
                 </Paper>
@@ -240,13 +242,13 @@ const TarjetaExistencia = (props) => {
                                 {tarjeta.length > 0 ? (
                                     tarjeta.filter(buscarInfoTarjeta(buscador)).map((t, index) => (
                                         <TableRow key={index} className={classes.tableRow}>
-                                            <TableCell>{t.registerDate}</TableCell>
-                                            <TableCell>{t.numVale}</TableCell>
-                                            <TableCell>{t.numeroIngreso}</TableCell>
-                                            <TableCell>{ }</TableCell>
-                                            <TableCell align='right'>{t.cantidadF}</TableCell>
-                                            <TableCell align='right'>{t.cantidadS}</TableCell>
-                                            <TableCell align='right'>{t.saldoExistencia}</TableCell>
+                                            <TableCell style={t.typeRegister=='entrada'?{ color: 'green' }:{color:'black'}}>{t.registerDate}</TableCell>
+                                            <TableCell align='center' style={t.typeRegister=='entrada'?{ color: 'green' }:{color:'black'}}>{t.numVale}</TableCell>
+                                            <TableCell aling='center' style={t.typeRegister=='entrada'?{ color: 'green' }:{color:'black'}}>{t.numeroIngreso}</TableCell>
+                                            <TableCell align='center' style={t.typeRegister=='entrada'?{ color: 'green' }:{color:'black'}}>{t.procedenciaDestino }</TableCell>
+                                            <TableCell align='right' style={t.typeRegister=='entrada'?{ color: 'green' }:{color:'black'}}>{t.cantidadF}</TableCell>
+                                            <TableCell align='right' style={t.typeRegister=='entrada'?{ color: 'green' }:{color:'black'}}>{t.cantidadS}</TableCell>
+                                            <TableCell align='right' style={t.typeRegister=='entrada'?{ color: 'green' }:{color:'black'}}>{parseFloat(t.saldoExistencia).toFixed(2)}</TableCell>
                                         </TableRow>
                                     ))
                                 ) : (

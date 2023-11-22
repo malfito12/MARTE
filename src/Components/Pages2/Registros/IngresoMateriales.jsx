@@ -1,5 +1,5 @@
-import { Container, Box, MenuItem, Grid, makeStyles, TextField, Typography, TableContainer, Table, TableHead, TableRow, TableCell, Paper, TableBody, Button, Tooltip, IconButton, Dialog, TableFooter, InputAdornment } from '@material-ui/core'
-import React, { useEffect, useState } from 'react'
+import { Container, Box, MenuItem, Grid, makeStyles, TextField, Typography, TableContainer, Table, TableHead, TableRow, TableCell, Paper, TableBody, Button, Tooltip, IconButton, Dialog, TableFooter, InputAdornment, CircularProgress } from '@material-ui/core'
+import React, { useEffect, useRef, useState } from 'react'
 import { v4 as uuidv4 } from 'uuid';
 import jsPDF from 'jspdf'
 import 'jspdf-autotable'
@@ -42,6 +42,11 @@ const IngresoMateriales = () => {
     const [openAlertRegisterError, setOpenAlertRegisterError] = useState(false)
     const [openAlertRegisterSuccess, setOpenAlertRegisterSuccess] = useState(false)
     const [openAlertDuplicidad, setOpenAlertDuplicidad] = useState(false)
+    const [openModal, setOpenModal] = useState(false)
+    const [dataIngreso, setDataIngreso] = useState([])
+    const [progress, setProgress] = useState('none')
+    const [data, setData] = useState([])
+    const [exist, setExist] = useState('none')
     const [changeData, setChageData] = useState({
         typeRegister: 'entrada',
         numFactura: '',
@@ -104,15 +109,16 @@ const IngresoMateriales = () => {
         }
 
     }
-    //---------------------GET NUMERO DE INGRESO-------------------------
-    // const getNumeroIngreso = async () => {
-    //     try {
-    //         const result = await ipcRenderer.invoke(`get-numeroIngreso`)
-    //         setNumeroIngreso(JSON.parse(result))
-    //     } catch (error) {
-    //         console.log(error)
-    //     }
-    // }
+    //---------------------MODAL INGRESO-------------------------
+    const openModalIngreso = (e) => {
+        // console.log(e)
+        setDataIngreso(e)
+        setOpenModal(true)
+    }
+    const closeModalIngreso = () => {
+        setOpenModal(false)
+    }
+
     //-----------------------GET MATERIAL ESPECIFICO------------------------
     const getSpecificMaterial = async () => {
         const data = changeData.codMaterial
@@ -167,18 +173,18 @@ const IngresoMateriales = () => {
     var dos;
     const introducir = (e) => {
         e.preventDefault()
-
         // console.log(changeData)
         // sum=sum+changeData.precio
         setSum(sum + parseFloat(changeData.precio))
-        var aux = changeData.nameSubMaterial
-        var aux2 = changeData.nameMaterial
-        aux = aux.split("#")
-        aux2 = aux2.split("#")
+        // var aux = changeData.nameSubMaterial
+        // var aux2 = changeData.nameMaterial
+        // aux = aux.split("#")
+        // aux2 = aux2.split("#")
         var fecha = changeData.registerDate
         var change = fecha.split('-')
         var newFecha = change[2] + '-' + change[1] + '-' + change[0]
-        const nuevo = { nameSubMaterial: aux[1], codSubMaterial: aux[0], nameMaterial: aux2[1], codMaterial: aux2[0] }
+        // const nuevo = { nameSubMaterial: aux[1], codSubMaterial: aux[0], nameMaterial: aux2[1], codMaterial: aux2[0] }
+        const nuevo = { nameSubMaterial: dataIngreso.nameSubMaterial, codSubMaterial: dataIngreso.codSubMaterial, nameMaterial: dataIngreso.nameMaterial, codMaterial: dataIngreso.codMaterial, unidadMedida: dataIngreso.unidadMedida }
         const precioUnitario = parseFloat(changeData.precio) / parseFloat(changeData.cantidadF)
         var roundedNum = (Math.round(precioUnitario * 100) / 100).toFixed(2);
         // dos = { ...changeData, ...nuevo, id: uuidv4(), registerDate: newFecha,idAlmacen:uuidv4(),precioUnitario:roundedNum }
@@ -190,7 +196,9 @@ const IngresoMateriales = () => {
         document.getElementById('cantidadR').value = ""
         document.getElementById('precio').value = ""
         // document.getElementById('precioUnitario').value = ""
+        closeModalIngreso()
     }
+    // console.log(uno)
     // console.log(uno)
     //---------------------DELETE DATA---------------------
     const deleteData = (e) => {
@@ -210,8 +218,10 @@ const IngresoMateriales = () => {
         setSum(0)
     }
     //---------------------EDIT DATA---------------------
+    const [antes, setAntes] = useState(0)
     const openModalEditData = (e) => {
-        console.log(e)
+        // console.log(e)
+        setAntes(e.precio)
         setChageData(e)
         setModalEditData(true)
     }
@@ -220,12 +230,15 @@ const IngresoMateriales = () => {
     }
     const editData = (e) => {
         e.preventDefault()
+        // console.log(antes)
         const indice = uno.findIndex((elemento, indice) => {
             if (elemento.id === changeData.id) {
                 return true;
             }
         })
         uno[indice] = changeData;
+        // setSum(sum - parseFloat(antes))
+        setSum(sum + parseFloat(changeData.precio) - parseFloat(antes))
         closeModalEditData()
         // setUno(newArray)
     }
@@ -255,39 +268,35 @@ const IngresoMateriales = () => {
             [e.target.name]: e.target.value
         })
     }
+    //------------------------------------
+    const texto = useRef()
+    const buscar = async (e) => {
+        e.preventDefault()
+        setProgress('block')
+        await ipcRenderer.invoke('buscador-mat-submat', { typeTable: 'nameSubMaterials', text: texto.current.value })
+            .then(resp => {
+                if (JSON.parse(resp.length) === 0) {
+                    setExist('block')
+                }
+                setProgress('none')
+                setData(JSON.parse(resp))
+            })
+            .catch(err => console.log(err))
+
+    }
+    // console.log(data)
     // console.log(numeroIngreso)
     //----------------------PDF GENERATE------------------------
-    // var aux;
-    // var aux2 = 0;
-    // var numIn;
-    // var quebrado = new Date()
-    // quebrado = quebrado.toString()
-    // quebrado = quebrado.split("")
-    // try {
-    //     aux = numeroIngreso[0].numeroIngreso
-    //     aux = aux.split("-")
-    //     aux = parseInt(aux[1])
-    //     aux = aux + 1
-    //     aux = aux.toString()
-    //     numIn = "IAC-" + aux + " /" + quebrado[13] + quebrado[14]
-    //     // numIn = aux
-    // } catch (error) {
-    //     aux2++;
-    //     aux2 = aux2.toString()
-    //     numIn = "IAC-" + aux2 + " /" + quebrado[13] + quebrado[14]
-    //     // numIn = aux2
-
-    // }
     const pdfGenerate = async () => {
         if (uno.length > 0) {
-            const doc = new jsPDF({ orientation: 'portrait', unit: 'in', format: [11, 7] })
+            const doc = new jsPDF({ orientation: 'portrait', unit: 'in', format: [11, 8] })
             var pageWidth = doc.internal.pageSize.width || doc.internal.pageSize.getWidth()
             var pageHeight = doc.internal.pageSize.height || doc.internal.pageSize.height()
-            doc.setFontSize(14)
+            doc.setFontSize(15)
             doc.setFont('Courier', 'Bold');
             doc.addImage(`${sello}`, 0.5, 0.3, 1.3, 0.5)
             doc.text(`INGRESO DE MATERIALES A ALMACEN`, pageWidth / 2, 1, 'center')
-            doc.setFontSize(8)
+            doc.setFontSize(10)
             // // doc.text(`N°:  ${uno[0].numNIT}`, 140, 30)
             // doc.text(`N°: ${numIn}`, 5, 0.7)
             doc.text(`N°: ${uno[0].numeroIngreso}`, 5, 0.7)
@@ -347,7 +356,7 @@ const IngresoMateriales = () => {
                         { content: sum.toFixed(2), styles: { halign: 'right' } }
                     ]
                 ],
-                styles: { fontSize: 8, font: 'courier', fontStyle: 'bold' },
+                styles: { fontSize: 10, font: 'courier', fontStyle: 'bold' },
                 startY: 2.2,
             })
 
@@ -391,155 +400,176 @@ const IngresoMateriales = () => {
             {/* ------------------------------------------------------------------*/}
             <Typography className={classes.spacingBot} style={{ paddingTop: '2rem', marginBottom: '1rem', color: 'white' }} variant='h6' align='center'>INGRESO DE MATERIALES</Typography>
             <Container maxWidth='md'>
-                <form id='registerForm' onSubmit={introducir}>
-                    <Grid container spacing={3}>
-                        <Grid item xs={12} sm={6}>
+                <Container maxWidth='md'>
+                    <form onSubmit={buscar}>
+                        <Grid container direction='row' justifyContent='space-around' alignItems='center' style={{ marginBottom: 15 }}>
                             <TextField
-                                name='numeroIngreso'
-                                label='N° de Ingreso'
+                                style={{ background: 'white', borderRadius: 5, width: '50%' }}
+                                inputRef={texto}
+                                // label='Introdusca'
                                 variant='outlined'
-                                className={classes.spacingBot}
-                                fullWidth
                                 size='small'
-                                onChange={handleChange}
-                                value={changeData.numeroIngreso}
-                                style={{ background: 'white', borderRadius: 5 }}
-                                required
                             />
-                            <TextField
-                                name='numFactura'
-                                label='N° de Factura'
-                                variant='outlined'
-                                className={classes.spacingBot}
-                                fullWidth
-                                size='small'
-                                onChange={handleChange}
-                                style={{ background: 'white', borderRadius: 5 }}
-                                required
-                            />
-                            <TextField
-                                name='codMaterial'
-                                label='Codigo de Material'
-                                variant='outlined'
-                                fullWidth
-                                size='small'
-                                // value={changeData.codMaterial}
-                                className={classes.spacingBot}
-                                style={{ background: 'white', borderRadius: 5 }}
-                                onChange={handleChange}
-                                InputProps={{
-                                    endAdornment: (
-                                        <IconButton size='small' onClick={getSpecificMaterial} component='span' style={{ color: 'white', background: '#2979ff' }}>
-                                            <SearchIcon />
-                                        </IconButton>
-                                    )
+
+                            <Button
+                                type='submit'
+                                // onClick={buscar}
+                                variant='contained'
+                                style={{
+                                    color: 'white',
+                                    background: 'linear-gradient(45deg, #4caf50 30%, #8bc34a 90%)'
                                 }}
-                            />
-                            <TextField
-                                name='nameMaterial'
-                                label='Material'
-                                variant='outlined'
-                                size='small'
-                                select
-                                fullWidth
-                                className={classes.spacingBot}
-                                value={changeData.nameMaterial}
-                                onChange={handleChange}
-                                style={{ background: 'white', borderRadius: 5 }}
-                                required
-                            >
-                                {material && material.map((m, index) => (
-                                    <MenuItem key={m._id} value={`${m.codMaterial}#${m.nameMaterial}`} >{m.nameMaterial}</MenuItem>
-                                ))}
-                            </TextField>
-                            <TextField
-                                name='codSubMaterial'
-                                label='Codigo Sub Material'
-                                variant='outlined'
-                                fullWidth
-                                size='small'
-                                className={classes.spacingBot}
-                                style={{ background: 'white', borderRadius: 5 }}
-                                onChange={handleChange}
-                                InputProps={{
-                                    endAdornment: (
-                                        <IconButton size='small' onClick={getSpecificSubMaterial} component='span' style={{ color: 'white', background: '#2979ff' }}>
-                                            <SearchIcon />
-                                        </IconButton>
-                                    )
-                                }}
-                            />
-                            <TextField
-                                name='nameSubMaterial'
-                                label='Nombre Sub-Material'
-                                variant='outlined'
-                                fullWidth
-                                size='small'
-                                select
-                                className={classes.spacingBot}
-                                value={changeData.nameSubMaterial}
-                                onChange={handleChange}
-                                style={{ background: 'white', borderRadius: 5 }}
-                                required
-                            >
-                                {subMaterial && subMaterial.map((m, index) => (
-                                    <MenuItem key={m._id} value={`${m.codSubMaterial}#${m.nameSubMaterial}`}>{m.nameSubMaterial}</MenuItem>
-                                ))}
-                            </TextField>
-                            <TextField
-                                id='cantidadF'
-                                name='cantidadF'
-                                label='Cantidad Facturada'
-                                variant='outlined'
-                                fullWidth
-                                type='number'
-                                size='small'
-                                className={classes.spacingBot}
-                                inputProps={{ step: 'any' }}
-                                onChange={handleChange}
-                                style={{ background: 'white', borderRadius: 5 }}
-                                required
-                            />
-                            <TextField
-                                id='cantidadR'
-                                name='cantidadR'
-                                label='Cantidad Recibida'
-                                variant='outlined'
-                                fullWidth
-                                type='number'
-                                size='small'
-                                className={classes.spacingBot}
-                                inputProps={{ step: 'any' }}
-                                onChange={handleChange}
-                                style={{ background: 'white', borderRadius: 5 }}
-                                required
-                            />
+                                endIcon={<SearchIcon />}
+                            >Buscar</Button>
                         </Grid>
-                        <Grid item xs={12} sm={6}>
-                            <TextField
-                                name='deDonde'
-                                label='De'
-                                variant='outlined'
-                                fullWidth
-                                size='small'
-                                className={classes.spacingBot}
-                                onChange={handleChange}
-                                style={{ background: 'white', borderRadius: 5 }}
-                                required
-                            />
-                            <TextField
-                                name='unidadMedida'
-                                label='Unidad de Medida'
-                                variant='outlined'
-                                fullWidth
-                                size='small'
-                                value={unidadM.length > 0 ? unidadM[0].unidadMedida : ''}
-                                className={classes.spacingBot}
-                                // onChange={handleChange}
-                                style={{ background: 'white', borderRadius: 5 }}
-                                required
-                            />
-                            {/* <TextField
+                    </form>
+                </Container>
+                {data.length > 0 ? (
+                    <>
+                        <Paper component={Box} p={0.5}>
+                            <TableContainer style={{ maxHeight: 450 }}>
+                                <Table size='small'>
+                                    <TableHead>
+                                        <TableRow>
+                                            <TableCell style={{ color: 'white', backgroundColor: "black", borderTopLeftRadius: 5 }}>CODIGO</TableCell>
+                                            <TableCell style={{ color: 'white', backgroundColor: "black" }}>MATERIAL</TableCell>
+                                            <TableCell style={{ color: 'white', backgroundColor: "black" }}>SUB-MATERIAL</TableCell>
+                                            <TableCell style={{ color: 'white', backgroundColor: "black", borderTopRightRadius: 5 }}>ACCIONES</TableCell>
+                                        </TableRow>
+                                    </TableHead>
+                                    <TableBody>
+                                        {
+                                            data.length > 0 ? (
+                                                data.map((e, index) => (
+                                                    <TableRow key={index} className={classes.tableRow}>
+                                                        <TableCell>{e.codSubMaterial}</TableCell>
+                                                        <TableCell>{e.nameMaterial}</TableCell>
+                                                        <TableCell>{e.nameSubMaterial}</TableCell>
+                                                        <TableCell>
+                                                            <Tooltip title='Ingreso de Material'>
+                                                                <Button onClick={() => openModalIngreso(e)} variant='contained' size='small' style={{ background: 'green', color: 'white' }}>ingreso</Button>
+                                                            </Tooltip>
+                                                        </TableCell>
+                                                    </TableRow>
+                                                ))
+                                            ) : (
+                                                <TableRow>
+                                                    {/* <TableCell align='center' colSpan='4' style={{ display: progress }}>
+                                                        <CircularProgress />
+                                                    </TableCell> */}
+                                                    <TableCell colSpan='4' align='center'>no existen datos</TableCell>
+                                                </TableRow>
+                                            )
+                                        }
+                                    </TableBody>
+                                </Table>
+                            </TableContainer>
+                        </Paper>
+                    </>
+                ) : (null)}
+                <div align='center' style={{ display: progress }}>
+                    <CircularProgress size={60} style={{ color: 'white' }} />
+                </div>
+                <Dialog
+                    open={openModal}
+                    onClose={closeModalIngreso}
+                    maxWidth='sm'
+                >
+                    <Paper component={Box} p={2}>
+                        <Typography variant='subtitle2' align='center'>Ingreso de Material</Typography>
+                        <form id='registerForm' onSubmit={introducir}>
+                            <Grid container spacing={3}>
+                                <Grid item xs={12} sm={6}>
+                                    <TextField
+                                        name='numeroIngreso'
+                                        label='N° de Ingreso'
+                                        variant='outlined'
+                                        className={classes.spacingBot}
+                                        fullWidth
+                                        size='small'
+                                        onChange={handleChange}
+                                        value={changeData.numeroIngreso}
+                                        style={{ background: 'white', borderRadius: 5 }}
+                                        required
+                                    />
+                                    <TextField
+                                        name='numFactura'
+                                        label='N° de Factura'
+                                        variant='outlined'
+                                        className={classes.spacingBot}
+                                        fullWidth
+                                        size='small'
+                                        onChange={handleChange}
+                                        style={{ background: 'white', borderRadius: 5 }}
+                                        required
+                                    />
+
+                                    <TextField
+                                        name='codSubMaterial'
+                                        label='Producto'
+                                        variant='outlined'
+                                        fullWidth
+                                        size='small'
+                                        className={classes.spacingBot}
+                                        style={{ background: 'white', borderRadius: 5 }}
+                                        value={dataIngreso.nameSubMaterial}
+                                        required
+                                    />
+                                    <TextField
+                                        id='cantidadF'
+                                        name='cantidadF'
+                                        label='Cantidad Facturada'
+                                        variant='outlined'
+                                        fullWidth
+                                        type='number'
+                                        size='small'
+                                        className={classes.spacingBot}
+                                        inputProps={{ step: 'any' }}
+                                        onChange={handleChange}
+                                        style={{ background: 'white', borderRadius: 5 }}
+                                        required
+                                    />
+                                    <TextField
+                                        id='cantidadR'
+                                        name='cantidadR'
+                                        label='Cantidad Recibida'
+                                        variant='outlined'
+                                        fullWidth
+                                        type='number'
+                                        size='small'
+                                        className={classes.spacingBot}
+                                        inputProps={{ step: 'any' }}
+                                        onChange={handleChange}
+                                        style={{ background: 'white', borderRadius: 5 }}
+                                        required
+                                    />
+                                </Grid>
+                                <Grid item xs={12} sm={6}>
+                                    <TextField
+                                        name='deDonde'
+                                        label='De'
+                                        variant='outlined'
+                                        fullWidth
+                                        size='small'
+                                        className={classes.spacingBot}
+                                        onChange={handleChange}
+                                        style={{ background: 'white', borderRadius: 5 }}
+                                        required
+                                    />
+                                    <TextField
+                                        name='unidadMedida'
+                                        label='Unidad de Medida'
+                                        variant='outlined'
+                                        fullWidth
+                                        size='small'
+                                        // value={unidadM.length > 0 ? unidadM[0].unidadMedida : ''}
+                                        value={dataIngreso.unidadMedida}
+                                        className={classes.spacingBot}
+                                        // onChange={handleChange}
+                                        style={{ background: 'white', borderRadius: 5 }}
+                                        required
+                                    />
+                                    {/* <TextField
                                 id='precioUnitario'
                                 name='precioUnitario'
                                 label='Precio Unitario Bs.'
@@ -553,58 +583,60 @@ const IngresoMateriales = () => {
                                 style={{ background: 'white', borderRadius: 5 }}
                                 required
                             /> */}
-                            <TextField
-                                id='precio'
-                                name='precio'
-                                label='Valor o Precio Bs.'
-                                variant='outlined'
-                                fullWidth
-                                type='number'
-                                size='small'
-                                className={classes.spacingBot}
-                                inputProps={{ step: 'any' }}
-                                onChange={handleChange}
-                                style={{ background: 'white', borderRadius: 5 }}
-                                required
-                            />
-                            <TextField
-                                name='procedenciaDestino'
-                                label='Procedencia o Destino'
-                                variant='outlined'
-                                fullWidth
-                                size='small'
-                                className={classes.spacingBot}
-                                onChange={handleChange}
-                                style={{ background: 'white', borderRadius: 5 }}
-                                required
-                            />
-                            <TextField
-                                name='registerDate'
-                                label='fecha de Ingreso'
-                                variant='outlined'
-                                fullWidth
-                                type='date'
-                                size='small'
-                                InputLabelProps={{ shrink: true }}
-                                className={classes.spacingBot}
-                                onChange={handleChange}
-                                style={{ background: 'white', borderRadius: 5 }}
-                                required
-                            />
-                        </Grid>
-                    </Grid>
-                    <div align='center' style={{ marginTop: '0.5rem' }} >
-                        <Button
-                            size='small'
-                            endIcon={<ArchiveIcon />}
-                            variant='contained'
-                            type='submit'
-                            style={{
-                                color: 'white',
-                                background: 'linear-gradient(45deg, #0277bd 30%, #0097a7 90%)',
-                            }} >insertar</Button>
-                    </div>
-                </form>
+                                    <TextField
+                                        id='precio'
+                                        name='precio'
+                                        label='Valor o Precio Bs.'
+                                        variant='outlined'
+                                        fullWidth
+                                        type='number'
+                                        size='small'
+                                        className={classes.spacingBot}
+                                        inputProps={{ step: 'any' }}
+                                        onChange={handleChange}
+                                        style={{ background: 'white', borderRadius: 5 }}
+                                        required
+                                    />
+                                    <TextField
+                                        name='procedenciaDestino'
+                                        label='Procedencia o Destino'
+                                        variant='outlined'
+                                        fullWidth
+                                        size='small'
+                                        className={classes.spacingBot}
+                                        onChange={handleChange}
+                                        style={{ background: 'white', borderRadius: 5 }}
+                                        required
+                                    />
+                                    <TextField
+                                        name='registerDate'
+                                        label='fecha de Ingreso'
+                                        variant='outlined'
+                                        fullWidth
+                                        type='date'
+                                        size='small'
+                                        InputLabelProps={{ shrink: true }}
+                                        className={classes.spacingBot}
+                                        onChange={handleChange}
+                                        style={{ background: 'white', borderRadius: 5 }}
+                                        required
+                                    />
+                                </Grid>
+                            </Grid>
+                            <div align='center' style={{ marginTop: '0.5rem' }} >
+                                <Button
+                                    size='small'
+                                    endIcon={<ArchiveIcon />}
+                                    variant='contained'
+                                    type='submit'
+                                    style={{
+                                        color: 'white',
+                                        background: 'linear-gradient(45deg, #0277bd 30%, #0097a7 90%)',
+                                    }} >insertar</Button>
+                            </div>
+                        </form>
+                    </Paper>
+                </Dialog>
                 {/* ---------------------ALERTS---------------------------- */}
                 <div style={{ marginBottom: '0.5rem', marginTop: '0.5rem' }}>
                     <ErrorPrintIngresoMat open={openAlertPrintError} setOpen={openCloseAlertPrintError} />

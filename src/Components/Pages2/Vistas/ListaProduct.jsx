@@ -148,7 +148,7 @@ const ListaProduct = (props) => {
     }
     //--------------------IMPRIMIR-----------------------------
     const pdfGenerate = () => {
-        const doc = new jsPDF({ orientation: 'portrait', unit: 'in', format: [11, 7] })
+        const doc = new jsPDF({ orientation: 'portrait', unit: 'in', format: [11, 8] })
 
         var pageWidth = doc.internal.pageSize.width || doc.internal.pageSize.getWidth()
         var pageHeight = doc.internal.pageSize.height || doc.internal.pageSize.height()
@@ -182,7 +182,7 @@ const ListaProduct = (props) => {
                 { content: d.codMaterial },
                 { content: d.nameMaterial }
             ])),
-            styles: { fontSize: 8, font: 'courier', fontStyle: 'bold' },
+            styles: { fontSize: 11, font: 'courier', fontStyle: 'bold' },
             startY: 1.3,
         })
         var pages = doc.internal.getNumberOfPages()

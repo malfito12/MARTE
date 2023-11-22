@@ -104,6 +104,7 @@ const ListaSubmateriales = (props) => {
             })
             .catch(err => console.log(err))
     }
+    // console.log(subMaterialData)
     //-------------------EDIT SUB MATERIAL -----------------------
     const openModalImage = (e) => {
         setChangeData(e)
@@ -183,7 +184,7 @@ const ListaSubmateriales = (props) => {
         const saldoInicial = e.saldoInicial
         const unidadMedida = e.unidadMedida
         history.push({
-            pathname: '/tarjetaExistencia/' + codMaterial + '/' + nameMaterial + '/' + codSubMaterial + '/' + nameSubMaterial + "/" + saldoInicial + "/" + unidadMedida,
+            pathname: '/tarjetaExistencia/' + codMaterial + '/' + nameMaterial + '/' + codSubMaterial + "/" + saldoInicial + "/" + unidadMedida,
             data: {
                 codMaterial: codMaterial,
                 nameMaterial: nameMaterial,
@@ -204,7 +205,7 @@ const ListaSubmateriales = (props) => {
         const saldoInicial = e.saldoInicial
         const unidadMedida = e.unidadMedida
         history.push({
-            pathname: '/kardexValorado/' + codMaterial + '/' + nameMaterial + '/' + codSubMaterial + '/' + nameSubMaterial + "/" + saldoInicial + "/" + unidadMedida + '/',
+            pathname: '/kardexValorado/' + codMaterial + '/' + nameMaterial + '/' + codSubMaterial + '/' + saldoInicial + "/" + unidadMedida,
             data: {
                 codMaterial: codMaterial,
                 nameMaterial: nameMaterial,
@@ -212,7 +213,7 @@ const ListaSubmateriales = (props) => {
                 nameSubMaterial: nameSubMaterial,
                 saldoInicial: saldoInicial,
                 unidadMedida: unidadMedida
-            }
+            },
         })
 
     }
@@ -248,7 +249,7 @@ const ListaSubmateriales = (props) => {
 
         document.getElementById('desaparecer1').style.display = 'none'
         document.getElementById('desaparecer2').style.display = 'none'
-        doc.setFontSize(15)
+        doc.setFontSize(16)
         doc.setFont('Courier', 'Bold');
         doc.addImage(`${sello}`, 0.5, 0.3, 1.5, 0.7)
         doc.text(`${url[3]}`, pageWidth / 2, 1, 'center')
@@ -262,10 +263,10 @@ const ListaSubmateriales = (props) => {
             },
             head: [[
                 { content: 'N°', styles: { halign: 'center' } },
-                { content: 'Cod', styles: { halign: 'center' } },
+                { content: 'Codigo', styles: { halign: 'center' } },
                 { content: 'Nombre', styles: { halign: 'center' } },
                 { content: 'Unidad', styles: { halign: 'center' } },
-                { content: 'Saldo Inicial', styles: { halign: 'center' } },
+                // { content: 'Saldo Inicial', styles: { halign: 'center' } },
                 { content: 'Saldo Actual', styles: { halign: 'center' } },
                 { content: 'Precio Total', styles: { halign: 'center' } },
                 { content: 'Precio Unitario', styles: { halign: 'center' } },
@@ -275,12 +276,12 @@ const ListaSubmateriales = (props) => {
                 { content: d.codSubMaterial, styles: { halign: 'center' } },
                 { content: d.nameSubMaterial },
                 { content: d.unidadMedida, styles: { halign: 'center' } },
-                { content: d.saldoInicial, styles: { halign: 'right' } },
+                // { content: d.saldoInicial, styles: { halign: 'right' } },
                 { content: d.saldoActual, styles: { halign: 'right' } },
                 { content: d.precioTotal, styles: { halign: 'right' } },
                 { content: d.precioUnitario, styles: { halign: 'right' } },
             ])),
-            styles: { fontSize: 8, font: 'courier', fontStyle: 'bold' },
+            styles: { fontSize: 11, font: 'courier', fontStyle: 'bold' },
             startY: 1.3,
         })
         var pages = doc.internal.getNumberOfPages()
@@ -398,7 +399,7 @@ const ListaSubmateriales = (props) => {
                                     <TableCell style={{ color: 'white', backgroundColor: "black" }}>{url[2]}</TableCell>
                                     <TableCell style={{ color: 'white', backgroundColor: "black" }}>Nombre</TableCell>
                                     <TableCell style={{ color: 'white', backgroundColor: "black" }}>Unidad</TableCell>
-                                    <TableCell style={{ color: 'white', backgroundColor: "black" }}>Saldo Inicial</TableCell>
+                                    {/* <TableCell style={{ color: 'white', backgroundColor: "black" }}>Saldo Inicial</TableCell> */}
                                     <TableCell style={{ color: 'white', backgroundColor: "black" }}>Saldo Actual</TableCell>
                                     <TableCell style={{ color: 'white', backgroundColor: "black" }}>Precio Total</TableCell>
                                     <TableCell style={{ color: 'white', backgroundColor: "black" }}>Precio Unitario</TableCell>
@@ -412,11 +413,12 @@ const ListaSubmateriales = (props) => {
                                         <TableRow key={s._id} className={classes.tableRow}>
                                             <TableCell>{s.codSubMaterial}</TableCell>
                                             <TableCell>{s.nameSubMaterial}</TableCell>
+                                            {/* <TableCell>{s.nameMaterial}</TableCell> */}
                                             <TableCell>{s.unidadMedida}</TableCell>
-                                            <TableCell align='right'>{s.saldoInicial}</TableCell>
-                                            <TableCell align='right'>{s.saldoActual}</TableCell>
-                                            <TableCell align='right'>{s.precioTotal}</TableCell>
-                                            <TableCell align='right'>{s.precioUnitario}</TableCell>
+                                            {/* <TableCell align='right'>{s.saldoInicial}</TableCell> */}
+                                            <TableCell align='right'>{parseFloat(s.saldoActual).toFixed(2)}</TableCell>
+                                            <TableCell align='right'>{parseFloat(s.precioTotal).toFixed(2)}</TableCell>
+                                            <TableCell align='right'>{parseFloat(s.precioUnitario).toFixed(2)}</TableCell>
                                             <TableCell style={{ padding: 0, margin: 0 }}>
                                                 <Grid container justifyContent='space-evenly'>
                                                     <Tooltip title='edit'>

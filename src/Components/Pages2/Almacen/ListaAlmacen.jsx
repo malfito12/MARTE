@@ -12,7 +12,7 @@ import DeleteIcon from '@material-ui/icons/Delete';
 import PrintIcon from '@material-ui/icons/Print';
 import ArrowBackIcon from '@material-ui/icons/ArrowBack';
 import ArrowForwardIcon from '@material-ui/icons/ArrowForward';
-import { ErrorAlertCierreCaja, ErrorAlertsMateriales, SuccessAlertCierreCaja, SuccessAlertsMateriales } from '../../Atoms/Alerts/Alerts'
+import { ErrorAlertCierreCaja, ErrorAlertsEditSubMaterial, ErrorAlertsMateriales, SuccessAlertCierreCaja, SuccessAlertsEditSubMaterial, SuccessAlertsMateriales } from '../../Atoms/Alerts/Alerts'
 import MaterialTable from 'material-table'
 import { useRef } from 'react'
 
@@ -110,11 +110,12 @@ const ListaAlmacen = () => {
     }
     //--------------------------------------PDF GENERATE---------------------------------
     const pdfGenerate = () => {
-        const doc = new jsPDF({ orientation: 'portrait', unit: 'in', format: [11, 7] })
+        // const doc = new jsPDF({ orientation: 'portrait', unit: 'in', format: [11, 7] })
+        const doc = new jsPDF({ orientation: 'landscape', unit: 'in', format: [14, 11] })
         var pageWidth = doc.internal.pageSize.width || doc.internal.pageSize.getWidth()
         var pageHeight = doc.internal.pageSize.height || doc.internal.pageSize.height()
         document.getElementById('desaparecer').style.display = 'none'
-        doc.setFontSize(15)
+        doc.setFontSize(16)
         doc.setFont('Courier', 'Bold');
         doc.addImage(`${sello}`, 0.5, 0.3, 1.5, 0.7)
         doc.text(`Materiales Almacen`, pageWidth / 2, 1, 'center')
@@ -150,7 +151,7 @@ const ListaAlmacen = () => {
                 { content: d.unidadMedida ? d.unidadMedida : "", styles: { halign: 'center' } },
                 { content: d.codSubMaterial ? d.codSubMaterial : "", styles: { halign: 'center' } },
             ])),
-            styles: { fontSize: 7, font: 'courier', fontStyle: 'bold' },
+            styles: { fontSize: 11, font: 'courier', fontStyle: 'bold' },
             startY: 1.3,
         })
         var pages = doc.internal.getNumberOfPages()
@@ -178,12 +179,18 @@ const ListaAlmacen = () => {
     const editSubMaterial = async (e) => {
         e.preventDefault()
         const id = changeData._id
-        const result = await ipcRenderer.invoke("edit-entradas-salidas", changeData)
-        console.log(JSON.parse(result))
-        const n = new Notification('Registro Editado', {/* body:'nose',*/ })
-        n.onClick = () => { }
-        closeModalEdit()
-        getAlmacen()
+        await ipcRenderer.invoke("edit-entradas-salidas", changeData)
+            .then(resp => {
+                openCloseAlertSuccess()
+                closeModalEdit()
+                getAlmacen()
+            }).catch(err => {
+                openCloseAlertError()
+                console.log(err)
+            })
+        // const n = new Notification('Registro Editado', {/* body:'nose',*/ })
+        // n.onClick = () => { }
+
 
     }
     //--------------------DELETE SUB-MATERIAL--------------------------
@@ -279,16 +286,17 @@ const ListaAlmacen = () => {
         }
         // console.log(data)
         await ipcRenderer.invoke('post-cierre-mes', data)
-        .then(resp=> {
-            var response = JSON.parse(resp)
-            console.log(response.message)
-            closeModalCierreMes()
-            openCloseAlertSuccess()
-            getAlmacen()
-        })
-        .catch(err=>{
-            openCloseAlertError()
-            console.log(err)})
+            .then(resp => {
+                var response = JSON.parse(resp)
+                console.log(response.message)
+                closeModalCierreMes()
+                openCloseAlertSuccess()
+                getAlmacen()
+            })
+            .catch(err => {
+                openCloseAlertError()
+                console.log(err)
+            })
     }
     //-------------------------------------------------------
     const meses = [
@@ -363,7 +371,7 @@ const ListaAlmacen = () => {
             </div>
             <Container maxWidth='lg' >
                 <TableContainer style={{ maxHeight: 550 }}>
-                    <MaterialTable
+                    {/* <MaterialTable
                         title='Almacen'
                         data={almacen}
                         columns={columns}
@@ -386,130 +394,119 @@ const ListaAlmacen = () => {
                                 onClick: (evt, data) => openModalCierreMes(data),
                             }
                         ]}
-                    // options={{
-                    //     actionsColumnIndex: -1
-                    // }}
-                    />
-                    {/* <Grid container direction='row' justifyContent='flex-end' alignItems='center' style={{ marginBottom: '0.5rem' }}>
-                    <div>
-                        {almacen &&
-                            <TextField
-                            style={{ background: 'white', borderRadius: 5, marginRight: '1rem' }}
-                                variant='outlined'
-                                size='small'
-                                InputProps={{
-                                    startAdornment: (
-                                        <>
-                                            <Typography variant='subtitle1' style={{ marginRight: '0.5rem' }}>Buscar</Typography>
-                                            <InputAdornment position='start'>
-                                                <SearchIcon />
-                                            </InputAdornment>
+                    /> */}
+                    <Grid container direction='row' justifyContent='flex-end' alignItems='center' style={{ marginBottom: '0.5rem' }}>
+                        <div>
+                            {almacen &&
+                                <TextField
+                                    style={{ background: 'white', borderRadius: 5, marginRight: '1rem' }}
+                                    variant='outlined'
+                                    size='small'
+                                    InputProps={{
+                                        startAdornment: (
+                                            <>
+                                                <Typography variant='subtitle1' style={{ marginRight: '0.5rem' }}>Buscar</Typography>
+                                                <InputAdornment position='start'>
+                                                    <SearchIcon />
+                                                </InputAdornment>
 
-                                        </>
-                                    )
+                                            </>
+                                        )
+                                    }}
+                                    onChange={e => setBuscador(e.target.value)}
+                                />
+                            }
+                            <IconButton
+                                component="span"
+                                style={{
+                                    color: 'white',
+                                    background: 'linear-gradient(45deg, #4caf50 30%, #8bc34a 90%)',
+                                    marginRight: '0.5rem',
                                 }}
-                                onChange={e => setBuscador(e.target.value)}
-                            />
-                        }
-                        <IconButton
-                            component="span"
-                            style={{
-                                color: 'white',
-                                background: 'linear-gradient(45deg, #4caf50 30%, #8bc34a 90%)',
-                                marginRight: '0.5rem',
-                            }}
-                            onClick={pdfGenerate}>
-                            <Tooltip title='imprimir'>
-                                <PrintIcon />
-                            </Tooltip>
-                        </IconButton>
-                    </div>
-                </Grid>
-                <Paper component={Box} p={0.3}>
-                    <TableContainer style={{ maxHeight: 430 }}>
-                        <Table id='id-table' stickyHeader size='small' style={{ minWidth: 1000 }} >
-                            <TableHead>
-                                <TableRow>
-                                    <TableCell style={{ color: 'white', backgroundColor: "black" }}></TableCell>
-                                    <TableCell style={{ color: 'white', backgroundColor: "black", width: '11%' }}>Fecha</TableCell>
-                                    <TableCell style={{ color: 'white', backgroundColor: "black", width: '3%' }}>Tipo de Registro</TableCell>
-                                    <TableCell style={{ color: 'white', backgroundColor: "black", width: '3%' }}>Cod. Movimiento</TableCell>
-                                    <TableCell style={{ color: 'white', backgroundColor: "black", width: '37%' }}>Descripcion</TableCell>
-                                    <TableCell style={{ color: 'white', backgroundColor: "black", width: '5%' }}>Cantidad</TableCell>
-                                    <TableCell style={{ color: 'white', backgroundColor: "black", width: '5%' }}>Precio Unitario</TableCell>
-                                    <TableCell style={{ color: 'white', backgroundColor: "black", width: '5%' }}>Precio</TableCell>
-                                    <TableCell style={{ color: 'white', backgroundColor: "black", width: '10%' }}>Unidad de Medida</TableCell>
-                                    <TableCell style={{ color: 'white', backgroundColor: "black", width: '10%' }}>Kardex</TableCell>
-                                    <TableCell id='desaparecer' style={{ color: 'white', backgroundColor: "black", width: '10%' }}></TableCell>
-                                </TableRow>
-                            </TableHead>
-                            <TableBody>
-                                {almacen.length > 0 ? (
-                                    almacen.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).filter(buscarMaterialAlmacen(buscador)).map((a, index) => (
-                                        // almacen.filter(buscarMaterialAlmacen(buscador)).map((a, index) => (
-                                        <TableRow key={index} className={classes.tableRow}>
-                                            <TableCell className={classes.tableCellBody}>
-                                                <Checkbox
-                                                    color="primary"
-                                                    onChange={() => checkID(a)}
-                                                    inputProps={{ 'aria-label': 'secondary checkbox' }}
-                                                    />
-                                                    </TableCell>
-                                            <TableCell className={classes.tableCellBody}>{a.registerDate}</TableCell>
-                                            <TableCell className={classes.tableCellBody}>{a.typeRegister}</TableCell>
-                                            {a.typeRegister == 'salida' ? (
-                                                <TableCell className={{ ...classes.tableCellspcing, ...classes.tableCellBody }}>{a.numVale}</TableCell>
-                                            ) : (
-                                                <TableCell className={{ ...classes.tableCellspcing, ...classes.tableCellBody }}>{a.numeroIngreso}</TableCell>
-                                            )}
-                                            <TableCell className={classes.tableCellBody}>{a.nameSubMaterial}</TableCell>
-                                            <TableCell align='right' className={classes.tableCellBody}>{a.cantidad}</TableCell>
-                                            <TableCell align='right' className={classes.tableCellBody}>{a.precioUnitario}</TableCell>
-                                            <TableCell align='right' className={classes.tableCellBody}>{a.precio}</TableCell>
-                                            <TableCell className={classes.tableCellBody}>{a.unidadMedida}</TableCell>
-                                            <TableCell className={classes.tableCellBody}>{a.codSubMaterial}</TableCell>
-                                            <TableCell style={{ padding: 0, margin: 0 }}>
-                                            <Grid container direction='row' justifyContent='space-evenly'>
-                                                    <Tooltip title='edit'>
-                                                        <IconButton size='small' style={{ color: 'green' }} onClick={() => openModalEdit(a)}>
-                                                            <EditIcon />
-                                                        </IconButton>
-                                                    </Tooltip>
-                                                    <Tooltip title='delete'>
-                                                        <IconButton size='small' style={{ color: 'red' }} onClick={() => openModalDelete(a)}>
-                                                            <DeleteIcon />
-                                                        </IconButton>
-                                                    </Tooltip>
-                                                </Grid>
-                                            </TableCell>
-                                        </TableRow>
-                                    ))
-                                ) : (
-                                    // <TableRow>
-                                    //     <TableCell align='center' colSpan='7' >no existen datos</TableCell>
-                                    // </TableRow>
+                                onClick={pdfGenerate}>
+                                <Tooltip title='imprimir'>
+                                    <PrintIcon />
+                                </Tooltip>
+                            </IconButton>
+                        </div>
+                    </Grid>
+                    <Paper component={Box} p={0.3}>
+                        <TableContainer style={{ maxHeight: 430 }}>
+                            <Table id='id-table' stickyHeader size='small' style={{ minWidth: 1000 }} >
+                                <TableHead>
                                     <TableRow>
-                                        <TableCell align='center' colSpan='7' style={{ display: progress }}>
-                                            <CircularProgress />
-                                        </TableCell>
-                                        <TableCell style={{ display: exist }} colSpan='7' align='center'>no existen datos</TableCell>
+                                        <TableCell style={{ color: 'white', backgroundColor: "black", width: '11%' }}>Fecha</TableCell>
+                                        <TableCell style={{ color: 'white', backgroundColor: "black", width: '3%' }}>Tipo de Registro</TableCell>
+                                        <TableCell style={{ color: 'white', backgroundColor: "black", width: '3%' }}>Cod. Movimiento</TableCell>
+                                        <TableCell style={{ color: 'white', backgroundColor: "black", width: '37%' }}>Descripcion</TableCell>
+                                        <TableCell style={{ color: 'white', backgroundColor: "black", width: '5%' }}>Cantidad</TableCell>
+                                        <TableCell style={{ color: 'white', backgroundColor: "black", width: '5%' }}>Precio Unitario</TableCell>
+                                        <TableCell style={{ color: 'white', backgroundColor: "black", width: '5%' }}>Precio</TableCell>
+                                        <TableCell style={{ color: 'white', backgroundColor: "black", width: '10%' }}>Unidad de Medida</TableCell>
+                                        <TableCell style={{ color: 'white', backgroundColor: "black", width: '10%' }}>Kardex</TableCell>
+                                        <TableCell id='desaparecer' style={{ color: 'white', backgroundColor: "black", width: '10%' }}></TableCell>
                                     </TableRow>
-                                )}
-                            </TableBody>
-                        </Table>
-                    </TableContainer>
-                    <TablePagination
-                        rowsPerPageOptions={[20, 50, 100, 200, 500, 1000]}
-                        component="div"
-                        count={almacen.length}
-                        rowsPerPage={rowsPerPage}
-                        page={page}
-                        onPageChange={handleChangePage}
-                        // onChangePage={handleChangePage}
-                        onRowsPerPageChange={handleChangeRowsPerPage}
+                                </TableHead>
+                                <TableBody>
+                                    {almacen.length > 0 ? (
+                                        almacen.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).filter(buscarMaterialAlmacen(buscador)).map((a, index) => (
+                                            // almacen.filter(buscarMaterialAlmacen(buscador)).map((a, index) => (
+                                            <TableRow key={index} className={classes.tableRow}>
+                                                <TableCell className={classes.tableCellBody}>{a.registerDate}</TableCell>
+                                                <TableCell className={classes.tableCellBody}>{a.typeRegister}</TableCell>
+                                                {a.typeRegister == 'salida' ? (
+                                                    <TableCell className={{ ...classes.tableCellspcing, ...classes.tableCellBody }}>{a.numVale}</TableCell>
+                                                ) : (
+                                                    <TableCell className={{ ...classes.tableCellspcing, ...classes.tableCellBody }}>{a.numeroIngreso}</TableCell>
+                                                )}
+                                                <TableCell className={classes.tableCellBody}>{a.nameSubMaterial}</TableCell>
+                                                <TableCell align='right' className={classes.tableCellBody}>{a.cantidad}</TableCell>
+                                                <TableCell align='right' className={classes.tableCellBody}>{parseFloat(a.precioUnitario).toFixed(2)}</TableCell>
+                                                <TableCell align='right' className={classes.tableCellBody}>{parseFloat(a.precio).toFixed(2)}</TableCell>
+                                                <TableCell className={classes.tableCellBody}>{a.unidadMedida}</TableCell>
+                                                <TableCell className={classes.tableCellBody}>{a.codSubMaterial}</TableCell>
+                                                <TableCell style={{ padding: 0, margin: 0 }}>
+                                                    <Grid container direction='row' justifyContent='space-evenly'>
+                                                        <Tooltip title='edit'>
+                                                            <IconButton size='small' style={{ color: 'green' }} onClick={() => openModalEdit(a)}>
+                                                                <EditIcon />
+                                                            </IconButton>
+                                                        </Tooltip>
+                                                        <Tooltip title='delete'>
+                                                            <IconButton size='small' style={{ color: 'red' }} onClick={() => openModalDelete(a)}>
+                                                                <DeleteIcon />
+                                                            </IconButton>
+                                                        </Tooltip>
+                                                    </Grid>
+                                                </TableCell>
+                                            </TableRow>
+                                        ))
+                                    ) : (
+                                        // <TableRow>
+                                        //     <TableCell align='center' colSpan='7' >no existen datos</TableCell>
+                                        // </TableRow>
+                                        <TableRow>
+                                            <TableCell align='center' colSpan='7' style={{ display: progress }}>
+                                                <CircularProgress />
+                                            </TableCell>
+                                            <TableCell style={{ display: exist }} colSpan='7' align='center'>no existen datos</TableCell>
+                                        </TableRow>
+                                    )}
+                                </TableBody>
+                            </Table>
+                        </TableContainer>
+                        <TablePagination
+                            rowsPerPageOptions={[20, 50, 100, 200, 500, 1000]}
+                            component="div"
+                            count={almacen.length}
+                            rowsPerPage={rowsPerPage}
+                            page={page}
+                            onPageChange={handleChangePage}
+                            // onChangePage={handleChangePage}
+                            onRowsPerPageChange={handleChangeRowsPerPage}
                         // onChangeRowsPerPage={handleChangeRowsPerPage}
                         />
-                    </Paper> */}
+                    </Paper>
                 </TableContainer>
             </Container>
             {/* ------------------------------------------------------------------*/}
@@ -728,9 +725,12 @@ const ListaAlmacen = () => {
             </Dialog>
             {/* -------------------------ALERTS------------------------ */}
             <SuccessAlertCierreCaja open={openAlertSuccess} setOpen={openCloseAlertSuccess} />
-            <ErrorAlertCierreCaja open={openAlertSuccess} setOpen={openCloseAlertSuccess} />
+            <ErrorAlertCierreCaja open={openAlertError} setOpen={openCloseAlertError} />
             <SuccessAlertsMateriales open={openAlertSuccess} setOpen={openCloseAlertSuccess} />
             <ErrorAlertsMateriales open={openAlertError} setOpen={openCloseAlertError} />
+
+            <SuccessAlertsEditSubMaterial open={openAlertSuccess} setOpen={openCloseAlertSuccess} />
+            <ErrorAlertsEditSubMaterial open={openAlertError} setOpen={openCloseAlertError} />
         </>
     )
 }

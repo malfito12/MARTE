@@ -1,4 +1,4 @@
-import { Box, makeStyles, Paper, Typography, Table, TableHead, TableRow, TableCell, TableBody, TableContainer, Grid, TextField, InputAdornment, Container, IconButton, Tooltip, TableFooter, CircularProgress } from '@material-ui/core'
+import { Box, makeStyles, Paper, Typography, Table, TableHead, TableRow, TableCell, TableBody, TableContainer, Grid, TextField, InputAdornment, Container, IconButton, Tooltip, TableFooter, CircularProgress, Button } from '@material-ui/core'
 import React, { useState } from 'react'
 import { useEffect } from 'react'
 import jsPDF from 'jspdf'
@@ -24,6 +24,7 @@ const HojaCostos = () => {
     const [saldoTotalMaterial, setSaldoTotalMaterial] = useState([])
     const [progress, setProgress] = useState('none')
     const [exist, setExist] = useState('none')
+    const [loading,setLoading]=useState('none')
     const [ultimo,setUltimo]=useState([])
     useEffect(() => {
         getMateriales()
@@ -103,10 +104,10 @@ const HojaCostos = () => {
     }
     //--------------------PDF GENERATE----------------------------
     const pdfGenerate = () => {
-        const doc = new jsPDF({ orientation: 'portrait', unit: 'in', format: [11, 7] })
+        const doc = new jsPDF({ orientation: 'portrait', unit: 'in', format: [11, 8] })
         var pageWidth = doc.internal.pageSize.width || doc.internal.pageSize.getWidth()
         var pageHeight = doc.internal.pageSize.height || doc.internal.pageSize.height()
-        doc.setFontSize(14)
+        doc.setFontSize(15)
         doc.setFont('Courier', 'Bold');
         doc.addImage(`${sello}`, 0.5, 0.3, 1.3, 0.5)
         doc.text("HOJA DE COSTOS ALMACEN INGENIO CACHITAMBO", pageWidth / 2, 1, 'center')
@@ -131,9 +132,9 @@ const HojaCostos = () => {
                 { content: index + 1 },
                 { content: d.codMaterial ? d.codMaterial : "", styles: { halign: 'center' } },
                 { content: d.nameMaterial ? d.nameMaterial : "" },
-                { content: d.saldoTotal ? d.saldoTotal : "", styles: { halign: 'right' } },
+                { content: d.saldoTotal ? d.saldoTotal : "0,00", styles: { halign: 'right' } },
             ])),
-            styles: { fontSize: 8, font: 'courier', fontStyle: 'bold' },
+            styles: { fontSize: 11, font: 'courier', fontStyle: 'bold' },
             startY: 1.3,
         })
         doc.autoTable({
@@ -143,7 +144,7 @@ const HojaCostos = () => {
                     { content: sumTotal.toFixed(2), styles: { halign: 'right' } }
                 ]
             ],
-            styles: { fontSize: 8, font: 'courier', fontStyle: 'bold' },
+            styles: { fontSize: 10, font: 'courier', fontStyle: 'bold' },
             startY: doc.lastAutoTable.finalY+0.1,
         })
         var pages = doc.internal.getNumberOfPages()
@@ -220,6 +221,7 @@ const HojaCostos = () => {
                                     {/* <TableCell style={{ color: 'white', backgroundColor: "black" }}>Total Saldo $us</TableCell> */}
                                 </TableRow>
                             </TableHead>
+                            {/* {array.saldoTotal.length>0?<Button>hh</Button>:} */}
                             <TableBody>
                                 {array.length > 0 ? (
                                     array.filter(buscarHojaCosto(buscador)).map((m, index) => (
@@ -227,7 +229,7 @@ const HojaCostos = () => {
                                             <TableCell>{index + 1}</TableCell>
                                             <TableCell>{m.codMaterial}</TableCell>
                                             <TableCell>{m.nameMaterial}</TableCell>
-                                            <TableCell align='right'>{m.saldoTotal}</TableCell>
+                                            <TableCell align='right'>{m.saldoTotal?m.saldoTotal:m.saldoTotal==0?m.saldoTotal:<CircularProgress size={15} />}</TableCell>
                                         </TableRow>
                                     ))
                                 ) : (
@@ -242,9 +244,9 @@ const HojaCostos = () => {
                             </TableBody>
                             <TableFooter>
                                 <TableRow>
-                                    <TableCell colSpan={3} style={{color:'black'}}>Total</TableCell>
+                                    <TableCell colSpan={3} style={{color:'black',fontFamily:'fantasy',fontSize:20}}>Total</TableCell>
                                     {/* <TableCell align='right'>{sumTotal}</TableCell> */}
-                                    <TableCell style={{color:'black'}} align='right'>{new Intl.NumberFormat('es-BO').format(sumTotal)}</TableCell>
+                                    <TableCell style={{color:'black',fontSize:20,fontFamily:'fantasy'}} align='right'>{new Intl.NumberFormat('es-BO').format(sumTotal)}</TableCell>
                                 </TableRow>
                             </TableFooter>
                         </Table>
