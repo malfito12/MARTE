@@ -108,6 +108,7 @@ const KardexValorado = (props) => {
 
             head: [
                 [
+                    { content: 'N°',rowSpan:2,styles:{halign:'center',lineWidth: 0.01,valign: 'middle'} },
                     { content: '', colSpan: 3, styles: { lineWidth: 0.01, halign: 'center' } },
                     { content: 'Entradas', colSpan: 2, styles: { lineWidth: 0.01, halign: 'center' } },
                     { content: 'Salidas', colSpan: 2, styles: { lineWidth: 0.01, halign: 'center' } },
@@ -126,17 +127,18 @@ const KardexValorado = (props) => {
                     { content: 'Valor Bs.', styles: { lineWidth: 0.01, halign: 'center' } },
                 ]
             ],
-            body: kardex.map((d) => ([
-                { content: d.registerDate },
-                { content: d.notaRemision ? d.notaRemision : '', styles: { halign: 'center' } },
-                { content: d.procedenciaDestino ? d.procedenciaDestino : '' },
-                { content: d.cantidadE ? d.cantidadE : '', styles: { halign: 'right', textColor: 'green' } },
-                { content: d.precioE ? d.precioE : '', styles: { halign: 'right', textColor: 'green' } },
-                { content: d.cantidadS ? d.cantidadS : '', styles: { halign: 'right' } },
-                { content: d.precioS ? d.precioS : '', styles: { halign: 'right' } },
-                { content: d.cantidadTotal ? d.cantidadTotal : '', styles: { halign: 'right' } },
-                { content: d.precioTotal ? d.precioTotal : '', styles: { halign: 'right' } },
-                { content: d.precioUnitario ? d.precioUnitario : '', styles: { halign: 'right' } },
+            body: kardex.map((d,index) => ([
+                { content: index + 1 ,styles:{lineWidth: 0.01,cellPadding:0.08}},
+                { content: d.registerDate, styles:{lineWidth: 0.01,textColor:d.typeRegister==='entrada'?'green':'black',cellPadding:0.08} },
+                { content: d.notaRemision ? d.notaRemision : '', styles: {lineWidth: 0.01, halign: 'center',textColor:d.typeRegister==='entrada'?'green':'black',cellPadding:0.08 } },
+                { content: d.procedenciaDestino ? d.procedenciaDestino : '', styles:{lineWidth: 0.01, textColor:d.typeRegister==='entrada'?'green':'black',cellPadding:0.08} },
+                { content: d.cantidadE ? d.cantidadE : '', styles: {lineWidth: 0.01, halign: 'right', textColor: 'green',cellPadding:0.08 } },
+                { content: d.precioE ? d.precioE : '', styles: {lineWidth: 0.01, halign: 'right', textColor: 'green',cellPadding:0.08 } },
+                { content: d.cantidadS ? d.cantidadS : '', styles: {lineWidth: 0.01, halign: 'right',cellPadding:0.08 } },
+                { content: d.precioS ?  parseFloat(d.precioS).toFixed(2) : '', styles: {lineWidth: 0.01, halign: 'right',cellPadding:0.08 } },
+                { content: d.cantidadTotal ? d.cantidadTotal : '', styles: {lineWidth: 0.01, halign: 'right',textColor:d.typeRegister==='entrada'?'green':'black',cellPadding:0.08 } },
+                { content: d.precioTotal ? parseFloat(d.precioTotal).toFixed(2) : '', styles: {lineWidth: 0.01, halign: 'right',textColor:d.typeRegister==='entrada'?'green':'black' ,cellPadding:0.08} },
+                { content: d.precioUnitario ?  parseFloat(d.precioUnitario).toFixed(2): '', styles: {lineWidth: 0.01, halign: 'right',textColor:d.typeRegister==='entrada'?'green':'black',cellPadding:0.08 } },
             ])),
             styles: { fontSize: 11, font: 'courier', fontStyle: 'bold' },
             startY: 1.7,
@@ -340,7 +342,7 @@ const KardexValorado = (props) => {
                     </IconButton>
                 </Grid>
                 <Paper component={Box} p={0.3}>
-                    <TableContainer style={{ maxHeight: 450 }}>
+                    <TableContainer style={{ maxHeight: '65vh'}}>
                         <Table border='1' id='id-table' style={{ minWidth: 1000 }} stickyHeader size='small'>
                             <TableHead >
                                 <TableRow>
@@ -353,7 +355,6 @@ const KardexValorado = (props) => {
                                     <TableCell className={classes.styleTablehead} align='center' rowSpan='2'>Precio Unitario</TableCell>
                                 </TableRow>
                                 <TableRow>
-
                                     <TableCell className={classes.styleTablehead} align='center'>Cantidad</TableCell>
                                     <TableCell className={classes.styleTablehead} align='center'>Valor Bs.</TableCell>
                                     <TableCell className={classes.styleTablehead} align='center'>Cantidad</TableCell>
@@ -513,6 +514,7 @@ const useStyles = makeStyles((theme) => ({
         align: 'center',
         fontSize: 'small',
         padding: 0,
+        overflowX: "initial"
     },
     tableRow: {
         "&:hover": {

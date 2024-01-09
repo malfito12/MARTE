@@ -392,7 +392,7 @@ const ListaSubmateriales = (props) => {
 
                 </Grid>
                 <Paper component={Box} p={0.3}>
-                    <TableContainer style={{ maxHeight: 450 }}>
+                    <TableContainer style={{ maxHeight: '65vh'}}>
                         <Table id='id-table' style={{ minWidth: 1000 }} stickyHeader size='small'>
                             <TableHead>
                                 <TableRow>

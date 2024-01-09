@@ -1,17 +1,11 @@
 {
-  "name": "ALMACEN-CACHITAMBO",
-  "version": "0.1.0",
-  "description": "Aplicacion de Registro",
+  "name": "EmpresaMineraMarte",
+  "version": "0.2.0",
+  "description": "Aplicacion de Registro Empresa Marte",
   "author": "malfito12",
   "main": "public/electron.js",
-  "build": {
-    "appId": "display.nemu",
-    "nsis":{
-      "allowToChangeInstallationDirectory":true,
-      "oneClick":false
-    }
-  },
   "homepage": "./",
+  "private":true,
   "dependencies": {
     "@material-ui/core": "^4.12.1",
     "@material-ui/icons": "^4.11.2",
@@ -45,6 +39,19 @@
     "electron-build": "electron-builder",
     "build": "npm run react-build && npm run electron-build",
     "start": "concurrently \"cross-env BROWSER=none npm run react-start\" \"wait-on http://localhost:3000 && electron .\""
+  },
+  "build": {
+    "appId": "com.empresamarte.app",
+    "icon":"assets/icons/goldmine_patrick_10585.png",
+    "productName":"Empresa Marte",
+    "target":"NSIS",
+    "win":{
+      "icon":"assets/icons/goldmine_patrick_10585.png"
+    },
+    "nsis":{
+      "allowToChangeInstallationDirectory":true,
+      "oneClick":false
+    }
   },
   "eslintConfig": {
     "extends": [

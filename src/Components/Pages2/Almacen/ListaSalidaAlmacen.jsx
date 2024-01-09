@@ -179,7 +179,7 @@ const ListaSalidaAlmacen = () => {
                     </div>
                 </Grid>
                 <Paper component={Box} p={0.3}>
-                    <TableContainer style={{ maxHeight: 450 }}>
+                    <TableContainer style={{ maxHeight: '65vh'}}>
                         <Table id='id-table' stickyHeader size='small'>
                             <TableHead>
                                 <TableRow>

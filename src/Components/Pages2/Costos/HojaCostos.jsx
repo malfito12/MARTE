@@ -210,7 +210,7 @@ const HojaCostos = () => {
                 </Paper>
                 {/* ------------------------------------------------------------------*/}
                 <Paper component={Box} p={0.3}>
-                    <TableContainer style={{ maxHeight: 450 }}>
+                    <TableContainer style={{ maxHeight: '62vh'}}>
                         <Table id='id-table' stickyHeader size='small'>
                             <TableHead>
                                 <TableRow>

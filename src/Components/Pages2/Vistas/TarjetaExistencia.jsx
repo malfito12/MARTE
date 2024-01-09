@@ -30,7 +30,7 @@ const useStyles = makeStyles((theme) => ({
 }))
 const TarjetaExistencia = (props) => {
     const { history } = props
-    const location=useLocation()
+    const location = useLocation()
     const classes = useStyles()
     // console.log(props)
     // var aux = props.location.pathname
@@ -110,24 +110,24 @@ const TarjetaExistencia = (props) => {
                 cellPadding: 0.01
             },
             head: [[
-                { content: 'N°' },
-                { content: 'Fecha', styles: { halign: 'center' } },
-                { content: 'Pedido Vale N°', styles: { halign: 'center' } },
-                { content: 'Ingreso N°', styles: { halign: 'center' } },
-                { content: 'Seccion', styles: { halign: 'center' } },
-                { content: 'Entradas', styles: { halign: 'center' } },
-                { content: 'Salidas', styles: { halign: 'center' } },
-                { content: 'Saldo Existencia', styles: { halign: 'center' } },
+                { content: 'N°', styles: { valign: 'middle' } },
+                { content: 'Fecha', styles: { halign: 'center', valign: 'middle' } },
+                { content: 'Pedido Vale N°', styles: { halign: 'center', valign: 'middle' } },
+                { content: 'Ingreso N°', styles: { halign: 'center', valign: 'middle' } },
+                { content: 'Seccion', styles: { halign: 'center', valign: 'middle' } },
+                { content: 'Entradas', styles: { halign: 'center', valign: 'middle' } },
+                { content: 'Salidas', styles: { halign: 'center', valign: 'middle' } },
+                { content: 'Saldo Existencia', styles: { halign: 'center', valign: 'middle' } },
             ]],
             body: tarjeta.map((d, index) => ([
-                { content: index + 1 },
-                { content: d.registerDate, styles: { halign: 'center' } },
-                { content: d.numVale ? d.numVale : ' ', styles: { halign: 'center' } },
-                { content: d.numeroIngreso ? d.numeroIngreso : '', styles: { halign: 'center' } },
-                { content: d.procedenciaDestino ? d.procedenciaDestino : ' ' },
-                { content: d.cantidadF ? d.cantidadF : ' ', styles: { halign: 'right',textColor:'green' } },
-                { content: d.cantidadS ? d.cantidadS : ' ', styles: { halign: 'right' } },
-                { content: d.saldoExistencia, styles: { halign: 'right' } },
+                { content: index + 1, styles: { lineWidth: 0.01, cellPadding: 0.08 } },
+                { content: d.registerDate, styles: { halign: 'center', lineWidth: 0.01, textColor: d.typeRegister === 'entrada' ? 'green' : 'black', cellPadding: 0.08 } },
+                { content: d.numVale ? d.numVale : ' ', styles: { halign: 'center', lineWidth: 0.01, textColor: d.typeRegister === 'entrada' ? 'green' : 'black', cellPadding: 0.08 } },
+                { content: d.numeroIngreso ? d.numeroIngreso : '', styles: { halign: 'center', lineWidth: 0.01, textColor: d.typeRegister === 'entrada' ? 'green' : 'black', cellPadding: 0.08 } },
+                { content: d.procedenciaDestino ? d.procedenciaDestino : ' ', styles: { lineWidth: 0.01, textColor: d.typeRegister === 'entrada' ? 'green' : 'black', cellPadding: 0.08 } },
+                { content: d.cantidadF ? parseFloat(d.cantidadF).toFixed(2) : ' ', styles: { halign: 'right', textColor: 'green', lineWidth: 0.01, cellPadding: 0.08 } },
+                { content: d.cantidadS ? parseFloat(d.cantidadS).toFixed(2) : ' ', styles: { halign: 'right', lineWidth: 0.01, cellPadding: 0.08 } },
+                { content: parseFloat(d.saldoExistencia).toFixed(2), styles: { halign: 'right', lineWidth: 0.01, textColor: d.typeRegister === 'entrada' ? 'green' : 'black', cellPadding: 0.08 } },
             ])),
             styles: { fontSize: 10, font: 'courier', fontStyle: 'bold' },
             startY: 1.8,
@@ -225,7 +225,7 @@ const TarjetaExistencia = (props) => {
                 {/* ------------------------------------------------------------------------ */}
 
                 <Paper component={Box} p={0.3}>
-                    <TableContainer style={{ maxHeight: 450 }}>
+                    <TableContainer style={{ maxHeight: '65vh'}}>
                         <Table id='id-table' style={{ minWidth: 1000 }} border='1' stickyHeader size='small'>
                             <TableHead>
                                 <TableRow>
@@ -242,13 +242,13 @@ const TarjetaExistencia = (props) => {
                                 {tarjeta.length > 0 ? (
                                     tarjeta.filter(buscarInfoTarjeta(buscador)).map((t, index) => (
                                         <TableRow key={index} className={classes.tableRow}>
-                                            <TableCell style={t.typeRegister=='entrada'?{ color: 'green' }:{color:'black'}}>{t.registerDate}</TableCell>
-                                            <TableCell align='center' style={t.typeRegister=='entrada'?{ color: 'green' }:{color:'black'}}>{t.numVale}</TableCell>
-                                            <TableCell aling='center' style={t.typeRegister=='entrada'?{ color: 'green' }:{color:'black'}}>{t.numeroIngreso}</TableCell>
-                                            <TableCell align='center' style={t.typeRegister=='entrada'?{ color: 'green' }:{color:'black'}}>{t.procedenciaDestino }</TableCell>
-                                            <TableCell align='right' style={t.typeRegister=='entrada'?{ color: 'green' }:{color:'black'}}>{t.cantidadF}</TableCell>
-                                            <TableCell align='right' style={t.typeRegister=='entrada'?{ color: 'green' }:{color:'black'}}>{t.cantidadS}</TableCell>
-                                            <TableCell align='right' style={t.typeRegister=='entrada'?{ color: 'green' }:{color:'black'}}>{parseFloat(t.saldoExistencia).toFixed(2)}</TableCell>
+                                            <TableCell style={t.typeRegister == 'entrada' ? { color: 'green' } : { color: 'black' }}>{t.registerDate}</TableCell>
+                                            <TableCell align='center' style={t.typeRegister == 'entrada' ? { color: 'green' } : { color: 'black' }}>{t.numVale}</TableCell>
+                                            <TableCell aling='center' style={t.typeRegister == 'entrada' ? { color: 'green' } : { color: 'black' }}>{t.numeroIngreso}</TableCell>
+                                            <TableCell align='center' style={t.typeRegister == 'entrada' ? { color: 'green' } : { color: 'black' }}>{t.procedenciaDestino}</TableCell>
+                                            <TableCell align='right' style={t.typeRegister == 'entrada' ? { color: 'green' } : { color: 'black' }}>{t.cantidadF}</TableCell>
+                                            <TableCell align='right' style={t.typeRegister == 'entrada' ? { color: 'green' } : { color: 'black' }}>{t.cantidadS}</TableCell>
+                                            <TableCell align='right' style={t.typeRegister == 'entrada' ? { color: 'green' } : { color: 'black' }}>{parseFloat(t.saldoExistencia).toFixed(2)}</TableCell>
                                         </TableRow>
                                     ))
                                 ) : (

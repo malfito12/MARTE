@@ -121,7 +121,7 @@ const NewDrawer = (props) => {
                 </List>
             </Drawer>
             <Main open={props.openDrawer}>
-                {/* <Route path='/' exact component={Home}/> */}
+                <Route path='/' exact component={Home}/>
                 <Route path='/listaProduct' exact component={ListaProduct} />
                 <Route path='/listaSubmateriales/:id'  component={ListaSubmateriales} />
                 <Route path='/ingresoMateriales' exact component={IngresoMateriales} />

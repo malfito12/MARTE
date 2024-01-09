@@ -116,7 +116,7 @@ const Busqueda = () => {
 
                 {data.length>0 ? (
                     <Paper component={Box} p={1} >
-                        <TableContainer style={{ maxHeight: 450 }}>
+                        <TableContainer style={{ maxHeight: '65vh'}}>
                             <Table stickyHeader size='small'>
                                 <TableHead>
                                     <TableRow>

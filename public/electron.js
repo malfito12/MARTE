@@ -113,8 +113,8 @@ const CIERREMESSCHEMA = {
 const CIERREMES = mongoose.model('cierremeses', CIERREMESSCHEMA)
 
 //-------------------------REGISTROS ALMACEN---------------------------------------
-mongoose.connect('mongodb://localhost/cachitambodb', {
-  // mongoose.connect('mongodb://localhost/electrondb', {
+// mongoose.connect('mongodb://localhost/cachitambodb', {
+mongoose.connect('mongodb://localhost/martedb', {
   useNewUrlParser: true,
   useUnifiedTopology: true,
   useFindAndModify: false,
